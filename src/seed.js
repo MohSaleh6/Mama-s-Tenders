@@ -24,13 +24,13 @@ export async function ensureSeeded(env) {
     const now = Math.floor(Date.now() / 1000);
     const stmts = [];
     for (const c of seed.categories) {
-      stmts.push(env.DB.prepare('INSERT OR IGNORE INTO categories (id,name_ar,name_en,tagline_ar,tagline_en,sort,allows_combo,allows_addons,active) VALUES (?,?,?,?,?,?,?,?,1)')
-        .bind(c.id, c.name_ar, c.name_en, c.tagline_ar || '', c.tagline_en || '', c.sort || 0, c.allows_combo ? 1 : 0, c.allows_addons ? 1 : 0));
+      stmts.push(env.DB.prepare('INSERT OR IGNORE INTO categories (id,name_ar,name_en,tagline_ar,tagline_en,sort,active) VALUES (?,?,?,?,?,?,1)')
+        .bind(c.id, c.name_ar, c.name_en, c.tagline_ar || '', c.tagline_en || '', c.sort || 0));
     }
     for (const i of seed.items) {
-      stmts.push(env.DB.prepare('INSERT OR IGNORE INTO items (id,category_id,name_ar,name_en,desc_ar,desc_en,note_ar,note_en,image,sizes,tags,featured,sold_out,is_addon,active,sort,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,1,?,?)')
+      stmts.push(env.DB.prepare('INSERT OR IGNORE INTO items (id,category_id,name_ar,name_en,desc_ar,desc_en,note_ar,note_en,image,sizes,tags,options,featured,sold_out,is_dip,active,sort,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,1,?,?)')
         .bind(i.id, i.category_id, i.name_ar, i.name_en, i.desc_ar || '', i.desc_en || '', i.note_ar || '', i.note_en || '', i.image || '',
-          JSON.stringify(i.sizes), JSON.stringify(i.tags || []), i.featured ? 1 : 0, i.sold_out ? 1 : 0, i.is_addon ? 1 : 0, i.sort || 0, now));
+          JSON.stringify(i.sizes), JSON.stringify(i.tags || []), JSON.stringify(i.options || []), i.featured ? 1 : 0, i.sold_out ? 1 : 0, i.is_dip ? 1 : 0, i.sort || 0, now));
     }
     for (const b of seed.branches) {
       stmts.push(env.DB.prepare('INSERT OR IGNORE INTO branches (id,name_ar,name_en,address_ar,address_en,phone,whatsapp,maps_url,rating,reviews,open_time,close_time,delivery,accepting,sort) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')

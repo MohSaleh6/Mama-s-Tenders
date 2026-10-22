@@ -14,7 +14,7 @@ fail=0
 run() { echo "── $1"; shift; "$@" || { echo "   FAILED"; fail=1; }; }
 run "i18n keys (every t('key') exists in ar + en)"   node tools/tests/i18n-keys.mjs
 run "order flow: sheet → cart → checkout → WhatsApp" node tools/tests/flow.cjs "$OUT"
-run "screen fit: hero/combo overlaps on 8 sizes"     node tools/tests/fit.cjs "$OUT"
+run "screen fit: hero/meal-box overlaps on 8 sizes"     node tools/tests/fit.cjs "$OUT"
 run "item sheet photo stays inside + card reveal"    node tools/tests/sheet.cjs "$OUT"
 run "no sideways overflow on phones"                 node tools/tests/ovf.cjs "$OUT"
 run "layout shift while loading (expect ~0)"         node tools/tests/cls.cjs

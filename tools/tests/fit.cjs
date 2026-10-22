@@ -1,4 +1,4 @@
-// Measures overlaps in the story at several viewports (hero at top, combo at end).
+// Measures overlaps in the story at several viewports (hero at top, meal box at end).
 const { chromium } = require('playwright');
 const BASE = process.env.BASE || 'http://127.0.0.1:8787';
 const OUT = process.argv[2] || 'tools/out';
@@ -7,7 +7,7 @@ const VPS = [[1000, 630, 'ipadL'], [1080, 680, 'ipad10L'], [1180, 700, 'ipadAirL
   const b = await chromium.launch();
   for (const [w, h, n] of VPS) {
     const ctx = await b.newContext({ viewport: { width: w, height: h }, hasTouch: w < 1100 });
-    await ctx.addInitScript(() => localStorage.setItem('mc_cart', JSON.stringify([{ id: 'smash', size: '150g', qty: 2, combo: false, addons: [], note: '' }])));
+    await ctx.addInitScript(() => localStorage.setItem('mt_cart', JSON.stringify([{ id: 'tenders-meal', size: '4pc', qty: 2, upsize: false, heat: 'spicy', note: '' }])));
     const p = await ctx.newPage();
     await p.goto(BASE + '/', { waitUntil: 'networkidle' }); await p.waitForTimeout(1300);
     const r = (s) => p.evaluate((s) => { const e = document.querySelector(s); if (!e) return null; const q = e.getBoundingClientRect(); return { t: Math.round(q.top), b: Math.round(q.bottom), l: Math.round(q.left), r: Math.round(q.right) }; }, s);
@@ -16,8 +16,8 @@ const VPS = [[1000, 630, 'ipadL'], [1080, 680, 'ipad10L'], [1180, 700, 'ipadAirL
     await p.screenshot({ path: `${OUT}/${n}-hero.png` });
     const H = await p.evaluate(() => document.querySelector('#top').offsetHeight - innerHeight);
     await p.evaluate((y) => scrollTo(0, y), H); await p.waitForTimeout(900);
-    const head = await r('#comboHead .sectitle'), box = await r('.box'), lid = await r('#boxLid'), dip = await r('.box__dip'), cta = await r('#comboCta');
-    await p.screenshot({ path: `${OUT}/${n}-combo.png` });
+    const head = await r('#mealHead .sectitle'), box = await r('.box'), lid = await r('#boxLid'), dip = await r('.box__dip'), cta = await r('#mealCta');
+    await p.screenshot({ path: `${OUT}/${n}-meal.png` });
     const issues = [];
     if (badge.t < nav.b + 4 && badge.r > nav.l - 4 && badge.l < nav.r + 4) issues.push(`badge under logo (badge.t ${badge.t} < logo.b ${nav.b})`);
     if (copy.t < 0) issues.push('copy above viewport');

@@ -1,8 +1,8 @@
 {
-  "name": "meat-and-cheezz",
+  "name": "mamas-tenders",
   "version": "1.0.0",
   "private": true,
-  "description": "Meat & Cheezz — menu, WhatsApp ordering and admin dashboard on Cloudflare Workers + D1",
+  "description": "Mama's Tenders — menu, WhatsApp ordering and admin dashboard on Cloudflare Workers + D1",
   "type": "module",
   "scripts": {
     "seed:build": "node scripts/build-seed.mjs",

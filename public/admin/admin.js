@@ -1,4 +1,4 @@
-// Meat & Cheezz — admin dashboard (vanilla JS)
+// Mama's Tenders — admin dashboard (vanilla JS)
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const html = document.documentElement;
@@ -20,24 +20,25 @@ const T = {
     time: 'الوقت', order: 'الطلب', branch: 'الفرع', type: 'النوع', customer: 'الزبون', total: 'المجموع',
     pickup: 'استلام', delivery: 'توصيل', orders: 'طلب', jd: 'د.أ',
     menu: 'المنيو', newItem: 'صنف جديد', all: 'الكل', searchItems: 'دوّر على صنف…',
-    legend: 'المفاتيح: ⭐ مميّز (يظهر بالنجوم) · متوفر = بكل الفروع · وكل فرع لحاله',
+    legend: 'المفاتيح: ⭐ مميّز (يظهر بـ«اختيارات ماما» أول المنيو) · متوفر = بكل الفروع · وكل فرع لحاله',
     available: 'متوفر', hiddenBadge: 'مخفي', edit: 'تعديل',
     editItem: 'تعديل صنف', newItemTitle: 'صنف جديد',
     photo: 'الصورة', upload: 'ارفع صورة', removePhoto: 'شيل الصورة', pickPhoto: 'أو اختار من الصور الموجودة', uploading: 'عم نرفع…',
     nameAr: 'الاسم (عربي)', nameEn: 'الاسم (إنجليزي)', descAr: 'المكونات (عربي)', descEn: 'المكونات (إنجليزي)',
-    noteAr: 'ملاحظة قصيرة (عربي)', noteEn: 'ملاحظة قصيرة (إنجليزي)', noteHint: 'مثل: ٦ حلقات، بكفي ٢-٣',
+    noteAr: 'ملاحظة قصيرة (عربي)', noteEn: 'ملاحظة قصيرة (إنجليزي)', noteHint: 'مثل: بتكفي ٤-٥ أشخاص',
     category: 'القسم', id: 'المعرّف (بالإنجليزي)', idHint: 'حروف صغيرة وأرقام وشرطات فقط، ما بتتغير بعد الحفظ',
     sizes: 'الأحجام والأسعار', sizeAr: 'الحجم (عربي)', sizeEn: 'الحجم (إنجليزي)', price: 'السعر', addSize: 'زيد حجم',
-    presetBeef: '١٠٠/١٥٠/٢٠٠/٣٠٠ غ', presetChicken: 'ميني/سنجل/دبل', presetSauce: 'صغير/كبير', presetOne: 'حجم واحد',
+    presetPieces: '٣/٤/٥ قطع', presetMeal: 'وجبة', presetDip: 'صوص ١/٣', presetOne: 'حجم واحد',
     tags: 'وسوم', tag_spicy: 'حار', tag_grilled: 'مشوي', tag_signature: 'الأكثر طلباً', tag_new: 'جديد',
-    flags: 'الحالة', featured: 'مميّز (بالنجوم)', soldOutAll: 'نفذ بكل الفروع', isAddon: 'إضافة للبرغر', active: 'ظاهر بالموقع', sort: 'الترتيب',
+    options: 'خيارات الطلب', opt_heat: 'حار أو عادي', opt_flavour: 'نكهة (وينجز وبايتس)', opt_dip: 'صوص مع الوجبة', opt_upsize: 'كبّر الوجبة',
+    flags: 'الحالة', featured: 'مميّز (اختيارات ماما)', soldOutAll: 'نفذ بكل الفروع', isDip: 'صوص بينختار مع الوجبات', active: 'ظاهر بالموقع', sort: 'الترتيب',
     saved: 'تم الحفظ ✓', deleted: 'انحذف', confirmDelete: 'أكيد بدك تحذف هالصنف؟ ما في رجعة.', error: 'صار خطأ',
     needSize: 'لازم يكون في حجم واحد على الأقل',
-    catName: 'اسم القسم', tagline: 'سطر تعريفي', allowsCombo: 'بسمح بالكومبو', allowsAddons: 'بسمح بالإضافات', newCategory: 'قسم جديد', addCategory: 'زيد قسم', confirmDeleteCat: 'تحذف القسم؟',
-    branches: 'الفروع', branchLbl: 'اسم الفرع', address: 'العنوان', phone: 'رقم الهاتف', whatsapp: 'رقم الواتساب (دولي بدون +)', waHint: 'مثال: 962788600111 — الطلبات بتوصل لهون',
+    catName: 'اسم القسم', tagline: 'سطر تعريفي', newCategory: 'قسم جديد', addCategory: 'زيد قسم', confirmDeleteCat: 'تحذف القسم؟',
+    branches: 'الفروع', branchLbl: 'اسم الفرع', address: 'العنوان', phone: 'رقم الهاتف', whatsapp: 'رقم الواتساب (دولي بدون +)', waHint: 'مثال: 962775866660 — الطلبات بتوصل لهون',
     maps: 'رابط Google Maps', rating: 'تقييم Google', reviews: 'عدد المراجعات', opens: 'بيفتح', closes: 'بسكّر', hasDelivery: 'في توصيل', accepting: 'مستقبل طلبات أونلاين',
-    settings: 'الإعدادات', comboPrice: 'سعر الكومبو', heroRating: 'التقييم بالواجهة', heroReviews: 'عدد المراجعات بالواجهة',
-    deliveryNoteAr: 'ملاحظة التوصيل (عربي)', deliveryNoteEn: 'ملاحظة التوصيل (إنجليزي)', announceAr: 'شريط إعلان (عربي)', announceEn: 'شريط إعلان (إنجليزي)', announceHint: 'اتركه فاضي لإخفائه — مثل: عرض الويكند: كومبو مجاني!',
+    settings: 'الإعدادات', comboPrice: 'سعر تكبير الوجبة', heroRating: 'التقييم بالواجهة', heroReviews: 'عدد المراجعات بالواجهة',
+    deliveryNoteAr: 'ملاحظة التوصيل (عربي)', deliveryNoteEn: 'ملاحظة التوصيل (إنجليزي)', announceAr: 'شريط إعلان (عربي)', announceEn: 'شريط إعلان (إنجليزي)', announceHint: 'اتركه فاضي لإخفائه — مثل: عرض الويكند: تكبير الوجبة مجاناً!',
     social: 'روابط السوشال', ordersEnabled: 'الطلب أونلاين شغّال', general: 'عام',
     orderDetails: 'تفاصيل الطلب', items: 'الأصناف', chat: 'افتح محادثة واتساب', call: 'اتصال',
     wrongPw: 'كلمة السر غلط', showPw: 'إظهار',
@@ -54,31 +55,32 @@ const T = {
     time: 'Time', order: 'Order', branch: 'Branch', type: 'Type', customer: 'Customer', total: 'Total',
     pickup: 'Pickup', delivery: 'Delivery', orders: 'orders', jd: 'JD',
     menu: 'Menu', newItem: 'New item', all: 'All', searchItems: 'Search items…',
-    legend: 'Keys: ⭐ featured (shown in the headliners) · Available = all branches · then each branch on its own',
+    legend: 'Keys: ⭐ featured (shown in “Mama’s picks” at the top of the menu) · Available = all branches · then each branch on its own',
     available: 'Available', hiddenBadge: 'Hidden', edit: 'Edit',
     editItem: 'Edit item', newItemTitle: 'New item',
     photo: 'Photo', upload: 'Upload photo', removePhoto: 'Remove photo', pickPhoto: 'or pick an existing photo', uploading: 'Uploading…',
     nameAr: 'Name (Arabic)', nameEn: 'Name (English)', descAr: 'Ingredients (Arabic)', descEn: 'Ingredients (English)',
-    noteAr: 'Short note (Arabic)', noteEn: 'Short note (English)', noteHint: 'e.g. 6 rings, serves 2–3',
+    noteAr: 'Short note (Arabic)', noteEn: 'Short note (English)', noteHint: 'e.g. feeds 4–5',
     category: 'Category', id: 'ID (English)', idHint: 'lowercase letters, numbers and dashes; fixed after saving',
     sizes: 'Sizes & prices', sizeAr: 'Size (Arabic)', sizeEn: 'Size (English)', price: 'Price', addSize: 'Add size',
-    presetBeef: '100/150/200/300g', presetChicken: 'Mini/Single/Double', presetSauce: 'Small/Large', presetOne: 'Single size',
+    presetPieces: '3/4/5 pcs', presetMeal: 'Meal', presetDip: 'Dip 1/3', presetOne: 'Single size',
     tags: 'Tags', tag_spicy: 'Spicy', tag_grilled: 'Grilled', tag_signature: 'Fan favourite', tag_new: 'New',
-    flags: 'Status', featured: 'Featured (headliners)', soldOutAll: 'Sold out everywhere', isAddon: 'Burger add-on', active: 'Visible on site', sort: 'Sort order',
+    options: 'Order options', opt_heat: 'Spicy or mild', opt_flavour: 'Flavour (wings & bites)', opt_dip: 'Dip with the meal', opt_upsize: 'Upsize the meal',
+    flags: 'Status', featured: 'Featured (Mama’s picks)', soldOutAll: 'Sold out everywhere', isDip: 'Dip choice for meals', active: 'Visible on site', sort: 'Sort order',
     saved: 'Saved ✓', deleted: 'Deleted', confirmDelete: 'Delete this item? This cannot be undone.', error: 'Something went wrong',
     needSize: 'At least one size is required',
-    catName: 'Category name', tagline: 'Tagline', allowsCombo: 'Allows combo', allowsAddons: 'Allows add-ons', newCategory: 'New category', addCategory: 'Add category', confirmDeleteCat: 'Delete this category?',
-    branches: 'Branches', branchLbl: 'Branch name', address: 'Address', phone: 'Phone', whatsapp: 'WhatsApp number (international, no +)', waHint: 'e.g. 962788600111 — orders are sent here',
+    catName: 'Category name', tagline: 'Tagline', newCategory: 'New category', addCategory: 'Add category', confirmDeleteCat: 'Delete this category?',
+    branches: 'Branches', branchLbl: 'Branch name', address: 'Address', phone: 'Phone', whatsapp: 'WhatsApp number (international, no +)', waHint: 'e.g. 962775866660 — orders are sent here',
     maps: 'Google Maps link', rating: 'Google rating', reviews: 'Review count', opens: 'Opens', closes: 'Closes', hasDelivery: 'Delivery available', accepting: 'Accepting online orders',
-    settings: 'Settings', comboPrice: 'Combo price', heroRating: 'Rating shown on the homepage', heroReviews: 'Review count on the homepage',
-    deliveryNoteAr: 'Delivery note (Arabic)', deliveryNoteEn: 'Delivery note (English)', announceAr: 'Announcement bar (Arabic)', announceEn: 'Announcement bar (English)', announceHint: 'Leave empty to hide — e.g. Weekend deal: free combo upgrade!',
+    settings: 'Settings', comboPrice: 'Upsize price', heroRating: 'Rating shown on the homepage', heroReviews: 'Review count on the homepage',
+    deliveryNoteAr: 'Delivery note (Arabic)', deliveryNoteEn: 'Delivery note (English)', announceAr: 'Announcement bar (Arabic)', announceEn: 'Announcement bar (English)', announceHint: 'Leave empty to hide — e.g. Weekend deal: free meal upsize!',
     social: 'Social links', ordersEnabled: 'Online ordering is on', general: 'General',
     orderDetails: 'Order details', items: 'Items', chat: 'Open WhatsApp chat', call: 'Call',
     wrongPw: 'Wrong password', showPw: 'Show',
   },
 };
 
-const S = { lang: localStorage.getItem('mc_admin_lang') || 'ar', data: null, view: 'overview', filter: 'all', q: '' };
+const S = { lang: localStorage.getItem('mt_admin_lang') || 'ar', data: null, view: 'overview', filter: 'all', q: '' };
 const t = (k) => T[S.lang][k] ?? T.ar[k] ?? k;
 const L = (o, f) => o?.[`${f}_${S.lang}`] || o?.[`${f}_ar`] || '';
 
@@ -86,7 +88,7 @@ function applyLang() {
   html.lang = S.lang;
   html.dir = S.lang === 'ar' ? 'rtl' : 'ltr';
   $$('[data-t]').forEach((el) => { el.textContent = t(el.dataset.t); });
-  document.title = `${t('dashboard')} — MEAT AND CHEEZZ`;
+  document.title = `${t('dashboard')} — MAMA'S TENDERS`;
 }
 
 function toast(msg, err = false) {
@@ -100,7 +102,7 @@ function toast(msg, err = false) {
 }
 
 async function api(path, { method = 'GET', body, raw, type } = {}) {
-  const headers = { 'x-mc-admin': '1' };
+  const headers = { 'x-mt-admin': '1' };
   if (raw) headers['content-type'] = type;
   else if (body !== undefined) headers['content-type'] = 'application/json';
   const res = await fetch(`/api/admin${path}`, { method, headers, body: raw ? body : body !== undefined ? JSON.stringify(body) : undefined, credentials: 'same-origin' });
@@ -145,7 +147,7 @@ $('#pwEye').addEventListener('click', () => { const i = $('#pw'); i.type = i.typ
 $('#logout').addEventListener('click', async () => { await api('/logout', { method: 'POST' }).catch(() => {}); showLogin(); });
 $$('[data-lang]').forEach((b) => b.addEventListener('click', () => {
   S.lang = S.lang === 'ar' ? 'en' : 'ar';
-  localStorage.setItem('mc_admin_lang', S.lang);
+  localStorage.setItem('mt_admin_lang', S.lang);
   applyLang();
   if (!$('#app').hidden) render();
 }));
@@ -245,7 +247,7 @@ function openOrder(o) {
       <a class="btn btn--ghost btn--sm" href="tel:${esc(o.phone)}">${esc(t('call'))}</a>
     </div>
     <h3 class="sec">${esc(t('items'))}</h3>
-    ${o.items.map((l) => `<div class="hbar" style="margin-bottom:12px"><span><b>${l.qty}×</b> ${esc(l[`name_${S.lang}`] || l.name_ar)} <small class="muted">${esc(l.size || '')}${l.combo ? ' · combo' : ''}${l.addons?.length ? ` · +${esc(l.addons.join(', '))}` : ''}${l.note ? ` · “${esc(l.note)}”` : ''}</small></span><b dir="ltr">${jd(l.unit * l.qty)}</b></div>`).join('')}
+    ${o.items.map((l) => `<div class="hbar" style="margin-bottom:12px"><span><b>${l.qty}×</b> ${esc(l[`name_${S.lang}`] || l.name_ar)} <small class="muted">${esc(l.size || '')}${l.heat ? ` · ${esc(l.heat)}` : ''}${l.flavour ? ` · ${esc(l.flavour)}` : ''}${l.dip ? ` · ${esc(l.dip)}` : ''}${l.upsize ? ' · upsize' : ''}${l.note ? ` · “${esc(l.note)}”` : ''}</small></span><b dir="ltr">${jd(l.unit * l.qty)}</b></div>`).join('')}
     <div class="hbar" style="border-top:1px dashed var(--line2);padding-top:10px"><b>${esc(t('total'))}</b><b dir="ltr">${jd(o.total)} ${esc(t('jd'))}</b></div>`;
   $('#orderDlg').showModal();
 }
@@ -337,17 +339,18 @@ function renderMenu() {
 const editor = $('#editor');
 let editing = null;
 const PRESETS = {
-  beef: [[100, 4000], [150, 4500], [200, 5250], [300, 6750]].map(([g, p]) => ({ id: `${g}g`, ar: `${g} غ`, en: `${g}g`, price: p })),
-  chicken: [['mini', 'ميني', 'Mini', 3500], ['single', 'سنجل', 'Single', 4000], ['double', 'دبل', 'Double', 6000]].map(([id, ar, en, price]) => ({ id, ar, en, price })),
-  sauce: [['small', 'صغير', 'Small', 250], ['large', 'كبير', 'Large', 500]].map(([id, ar, en, price]) => ({ id, ar, en, price })),
+  pieces: [[3, 4500], [4, 5500], [5, 6250]].map(([n, price]) => ({ id: `${n}pc`, ar: `${n} قطع`, en: `${n} pcs`, price })),
+  meal: [{ id: 'one', ar: 'وجبة', en: 'Meal', price: 5750 }],
+  dip: [['1pc', 'علبة', '1 cup', 350], ['3pc', '3 علب', '3 cups', 1000]].map(([id, ar, en, price]) => ({ id, ar, en, price })),
   one: [{ id: 'one', ar: 'عادي', en: 'Regular', price: 1000 }],
 };
+const OPTIONS = ['heat', 'flavour', 'dip', 'upsize'];
 const slugify = (s) => String(s).toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
 
 function openEditor(item) {
   const isNew = !item;
   editing = isNew
-    ? { id: '', category_id: S.filter !== 'all' ? S.filter : S.data.categories[0]?.id, name_ar: '', name_en: '', desc_ar: '', desc_en: '', note_ar: '', note_en: '', image: '', sizes: structuredClone(PRESETS.one), tags: [], featured: 0, sold_out: 0, is_addon: 0, active: 1, sort: 0, isNew: true }
+    ? { id: '', category_id: S.filter !== 'all' ? S.filter : S.data.categories[0]?.id, name_ar: '', name_en: '', desc_ar: '', desc_en: '', note_ar: '', note_en: '', image: '', sizes: structuredClone(PRESETS.one), tags: [], options: [], featured: 0, sold_out: 0, is_dip: 0, active: 1, sort: 0, isNew: true }
     : { ...structuredClone(item), isNew: false };
   $('#edTitle').textContent = isNew ? t('newItemTitle') : `${t('editItem')} · ${L(item, 'name')}`;
   $('#edDelete').hidden = isNew;
@@ -380,18 +383,21 @@ function openEditor(item) {
     <div class="sizes" id="edSizes"></div>
     <div class="presets">
       <button class="btn btn--ghost btn--sm" type="button" id="addSize">${icon('plus')}${esc(t('addSize'))}</button>
-      ${['beef', 'chicken', 'sauce', 'one'].map((p) => `<button class="btn btn--ghost btn--sm" type="button" data-preset="${p}">${esc(t(`preset${p[0].toUpperCase()}${p.slice(1)}`))}</button>`).join('')}
+      ${['pieces', 'meal', 'dip', 'one'].map((p) => `<button class="btn btn--ghost btn--sm" type="button" data-preset="${p}">${esc(t(`preset${p[0].toUpperCase()}${p.slice(1)}`))}</button>`).join('')}
     </div>
 
     <h3 class="sec">${esc(t('tags'))}</h3>
     <div class="checks">${['spicy', 'grilled', 'signature', 'new'].map((tg) => `<label class="sw sw--plain"><input type="checkbox" name="tag" value="${tg}" ${editing.tags.includes(tg) ? 'checked' : ''}><i></i>${esc(t(`tag_${tg}`))}</label>`).join('')}</div>
+
+    <h3 class="sec">${esc(t('options'))}</h3>
+    <div class="checks">${OPTIONS.map((o) => `<label class="sw sw--plain"><input type="checkbox" name="option" value="${o}" ${(editing.options || []).includes(o) ? 'checked' : ''}><i></i>${esc(t(`opt_${o}`))}</label>`).join('')}</div>
 
     <h3 class="sec">${esc(t('flags'))}</h3>
     <div class="checks">
       <label class="sw sw--plain"><input type="checkbox" name="active" ${editing.active ? 'checked' : ''}><i></i>${esc(t('active'))}</label>
       <label class="sw sw--plain"><input type="checkbox" name="featured" ${editing.featured ? 'checked' : ''}><i></i>${esc(t('featured'))}</label>
       <label class="sw sw--plain"><input type="checkbox" name="sold_out" ${editing.sold_out ? 'checked' : ''}><i></i>${esc(t('soldOutAll'))}</label>
-      <label class="sw sw--plain"><input type="checkbox" name="is_addon" ${editing.is_addon ? 'checked' : ''}><i></i>${esc(t('isAddon'))}</label>
+      <label class="sw sw--plain"><input type="checkbox" name="is_dip" ${editing.is_dip ? 'checked' : ''}><i></i>${esc(t('isDip'))}</label>
     </div>`;
   drawSizes();
 
@@ -499,7 +505,8 @@ $('#edForm').addEventListener('submit', async (e) => {
     image: editing.image,
     sizes: editing.sizes,
     tags: $$('input[name="tag"]:checked', e.target).map((i) => i.value),
-    featured: f.featured.checked, sold_out: f.sold_out.checked, is_addon: f.is_addon.checked, active: f.active.checked,
+    options: $$('input[name="option"]:checked', e.target).map((i) => i.value),
+    featured: f.featured.checked, sold_out: f.sold_out.checked, is_dip: f.is_dip.checked, active: f.active.checked,
     sort: editing.isNew ? 0 : Number(f.sort.value || 0),
   };
   const btn = $('#edSave');
@@ -546,8 +553,6 @@ function openCats() {
     </div>
     <div class="checks">
       <label class="sw sw--plain"><input type="checkbox" name="active" ${c.active ? 'checked' : ''}><i></i>${esc(t('active'))}</label>
-      <label class="sw sw--plain"><input type="checkbox" name="allows_combo" ${c.allows_combo ? 'checked' : ''}><i></i>${esc(t('allowsCombo'))}</label>
-      <label class="sw sw--plain"><input type="checkbox" name="allows_addons" ${c.allows_addons ? 'checked' : ''}><i></i>${esc(t('allowsAddons'))}</label>
     </div>
     <div class="actions">${isNew ? '' : `<button class="btn btn--danger btn--sm" type="button" data-del>${icon('trash')}</button>`}<button class="btn btn--y btn--sm" type="submit">${esc(t('save'))}</button></div>
   </form>`;
@@ -555,7 +560,7 @@ function openCats() {
     body.innerHTML = S.data.categories.map((c) => row(c, false)).join('') +
       `<button class="btn btn--ghost" type="button" id="addCat">${icon('plus')}${esc(t('addCategory'))}</button>`;
     $('#addCat').onclick = () => {
-      $('#addCat').insertAdjacentHTML('beforebegin', row({ id: '', name_ar: '', name_en: '', tagline_ar: '', tagline_en: '', sort: (S.data.categories.length + 1) * 10, active: 1, allows_combo: 0, allows_addons: 0 }, true));
+      $('#addCat').insertAdjacentHTML('beforebegin', row({ id: '', name_ar: '', name_en: '', tagline_ar: '', tagline_en: '', sort: (S.data.categories.length + 1) * 10, active: 1 }, true));
     };
   };
   body.onsubmit = async (e) => {
@@ -567,7 +572,7 @@ function openCats() {
       name_ar: f.elements.name_ar.value, name_en: f.elements.name_en.value,
       tagline_ar: f.elements.tagline_ar.value, tagline_en: f.elements.tagline_en.value,
       sort: Number(f.elements.sort.value || 0),
-      active: f.elements.active.checked, allows_combo: f.elements.allows_combo.checked, allows_addons: f.elements.allows_addons.checked,
+      active: f.elements.active.checked,
     };
     try {
       await api(isNew ? '/categories' : `/categories/${encodeURIComponent(payload.id)}`, { method: isNew ? 'POST' : 'PUT', body: payload });

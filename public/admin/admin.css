@@ -1,15 +1,15 @@
-/* Meat & Cheezz — admin dashboard */
+/* Mama's Tenders — admin dashboard */
 @font-face { font-family: "Cairo"; src: url(/fonts/cairo-arabic.woff2) format("woff2"); font-weight: 400 800; font-display: swap;
   unicode-range: U+0600-06FF, U+0750-077F, U+0870-0891, U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC; }
 @font-face { font-family: "Cairo"; src: url(/fonts/cairo-latin.woff2) format("woff2"); font-weight: 400 800; font-display: swap;
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
-@font-face { font-family: "Anton"; src: url(/fonts/anton-latin.woff2) format("woff2"); font-display: swap; }
+@font-face { font-family: "Alfa Slab One"; src: url(/fonts/alfaslab-latin.woff2) format("woff2"); font-display: swap; }
 
 :root {
   color-scheme: dark;
-  --bg: #0b0b0c; --s1: #131315; --s2: #1b1b1e; --s3: #26262a;
+  --bg: #0d0b09; --s1: #16130f; --s2: #1f1b16; --s3: #2b261f;
   --line: rgba(255, 255, 255, .09); --line2: rgba(255, 255, 255, .16);
-  --text: #f6f3ea; --muted: #a29e93; --y: #ffd400; --red: #ff5a3c; --green: #25d366;
+  --text: #f6f3ea; --muted: #a29e93; --y: #ffb81c; --red: #ff5a3c; --green: #25d366;
   --r: 16px; --dir: -1;
 }
 html[dir="ltr"] { --dir: 1; }
@@ -24,8 +24,8 @@ a { color: inherit; }
 .muted { color: var(--muted); }
 .grow { flex: 1; }
 
-.brand { display: block; width: 150px; height: auto; }
-.brand--sm { width: 58px; }
+.brand { display: block; width: 120px; height: auto; }
+.brand--sm { width: 44px; }
 
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 42px; padding: 0 18px; border-radius: 99px; background: var(--s3); font-weight: 800; white-space: nowrap; transition: transform .2s, background .2s, opacity .2s; text-decoration: none; }
 .btn:active { transform: scale(.96); }
@@ -41,7 +41,7 @@ a { color: inherit; }
 .linkbtn { color: var(--muted); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
 
 /* login */
-.login { min-height: 100svh; display: grid; place-items: center; padding: 16px; background: radial-gradient(50% 40% at 50% 30%, rgba(255, 212, 0, .14), transparent 70%), var(--bg); }
+.login { min-height: 100svh; display: grid; place-items: center; padding: 16px; background: radial-gradient(50% 40% at 50% 30%, rgba(255, 184, 28, .14), transparent 70%), var(--bg); }
 .login__card { width: min(400px, 100%); display: grid; gap: 14px; justify-items: center; text-align: center; padding: 34px 24px 26px; border-radius: 28px; background: var(--s1); box-shadow: inset 0 0 0 1px var(--line), 0 30px 80px -30px rgba(0, 0, 0, .9); }
 .login__card h1 { margin: 12px 0 0; font-size: 1.6rem; }
 .login__card p { margin: 0; }
@@ -72,7 +72,7 @@ a { color: inherit; }
 .kpis { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 14px; }
 @media (min-width: 900px) { .kpis { grid-template-columns: repeat(4, 1fr); } }
 .kpi small { display: block; color: var(--muted); font-weight: 700; }
-.kpi b { display: block; font-family: Anton, Impact, sans-serif; font-weight: 400; font-size: 2.1rem; line-height: 1.15; color: var(--y); direction: ltr; text-align: start; }
+.kpi b { display: block; font-family: "Alfa Slab One", Georgia, serif; font-weight: 400; font-size: 2.1rem; line-height: 1.15; color: var(--y); direction: ltr; text-align: start; }
 html[dir="rtl"] .kpi b { text-align: end; }
 .kpi span { color: var(--muted); font-size: .8rem; }
 .grid2 { display: grid; gap: 14px; }
@@ -95,7 +95,7 @@ html[dir="rtl"] .kpi b { text-align: end; }
 .orders .num { direction: ltr; text-align: end; font-weight: 800; white-space: nowrap; }
 html[dir="ltr"] .orders .num { text-align: start; }
 .pill { display: inline-block; padding: 2px 10px; border-radius: 99px; background: var(--s3); font-size: .78rem; font-weight: 800; white-space: nowrap; }
-.pill--y { background: rgba(255, 212, 0, .15); color: var(--y); }
+.pill--y { background: rgba(255, 184, 28, .15); color: var(--y); }
 .pill--g { background: rgba(37, 211, 102, .14); color: #6ee7a0; }
 .pill--r { background: rgba(255, 90, 60, .14); color: #ff8a73; }
 @media (max-width: 720px) {
@@ -129,7 +129,7 @@ html[dir="rtl"] .row__prices { text-align: end; }
 @media (max-width: 760px) { .row { grid-template-columns: 56px 1fr; } .row__ctl { grid-column: 1 / -1; justify-content: space-between; } }
 .star { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; color: var(--s3); background: var(--s2); transition: color .2s, transform .3s; }
 .star .ic { width: 20px; height: 20px; }
-.star[aria-pressed="true"] { color: var(--y); background: rgba(255, 212, 0, .12); }
+.star[aria-pressed="true"] { color: var(--y); background: rgba(255, 184, 28, .12); }
 .star:active { transform: scale(.85); }
 
 .sw { display: inline-flex; align-items: center; gap: 6px; font-size: .8rem; font-weight: 700; color: var(--muted); cursor: pointer; user-select: none; }
@@ -158,7 +158,7 @@ textarea { resize: vertical; min-height: 70px; }
 .checks { display: flex; flex-wrap: wrap; gap: 14px 20px; }
 
 .photo { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
-.photo__prev { width: 150px; height: 120px; border-radius: 18px; background: radial-gradient(closest-side, rgba(255, 212, 0, .2), transparent), var(--s2); display: grid; place-items: center; overflow: hidden; color: var(--muted); }
+.photo__prev { width: 150px; height: 120px; border-radius: 18px; background: radial-gradient(closest-side, rgba(255, 184, 28, .2), transparent), var(--s2); display: grid; place-items: center; overflow: hidden; color: var(--muted); }
 .photo__prev img { width: 100%; height: 100%; object-fit: contain; }
 .photo__prev .ic { width: 40px; height: 40px; }
 .photo__btns { display: grid; gap: 8px; }
@@ -195,7 +195,7 @@ dialog::backdrop { background: rgba(0, 0, 0, .65); backdrop-filter: blur(2px); }
 .catrow { padding: 14px; border-radius: 16px; background: var(--s2); margin-bottom: 10px; }
 .catrow .actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
 .branchcard { margin-bottom: 16px; }
-.branchcard h3 { font-family: Anton, "Cairo", sans-serif; font-weight: 400; font-size: 1.6rem; margin: 0 0 12px; }
+.branchcard h3 { font-family: "Cairo", sans-serif; font-weight: 800; font-size: 1.4rem; margin: 0 0 12px; }
 .savebar { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
 
 .toasts { position: fixed; z-index: 100; bottom: 18px; left: 50%; translate: -50% 0; display: grid; gap: 8px; justify-items: center; pointer-events: none; }

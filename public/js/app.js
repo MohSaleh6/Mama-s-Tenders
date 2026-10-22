@@ -1,13 +1,12 @@
-// Meat & Cheezz — customer site
+// Mama's Tenders — customer site
 // Vanilla JS, no dependencies. Arabic-first, RTL-aware.
-import { DICT, QUOTES } from './i18n.js?v=2d4fc1afd3';
+import { DICT, QUOTES, FLAVOURS, DIP_COLORS } from './i18n.js?v=562dd9a3d1';
 
 /* ════════════════════════ utilities ════════════════════════ */
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const html = document.documentElement;
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const store = {
@@ -32,12 +31,11 @@ const S = {
   items: {},
   cats: {},
   branches: {},
-  branchId: store.get('mc_branch', null),
-  cart: store.get('mc_cart', []),
+  branchId: store.get('mt_branch', null),
+  cart: store.get('mt_cart', []),
   step: 0,
   sent: null,
   geo: null,
-  mood: 'all',
 };
 
 const t = (key, vars) => {
@@ -49,7 +47,6 @@ const L = (obj, field) => (obj ? obj[`${field}_${S.lang}`] || obj[`${field}_ar`]
 const other = (obj, field) => (obj ? obj[`${field}_${S.lang === 'ar' ? 'en' : 'ar'}`] || '' : '');
 const money = (fils) => (Math.round(fils) / 1000).toFixed(2);
 const priceText = (fils) => `${money(fils)} ${t('cur')}`;
-const priceHTML = (fils, prefix = '') => `${prefix ? `${prefix} ` : ''}<b>${money(fils)}</b> ${t('cur')}`;
 const smImg = (src) => (src && src.startsWith('/img/menu/') ? src.replace(/\.webp$/, '-sm.webp') : src);
 
 /* ════════════════════════ time & branches ════════════════════════ */
@@ -95,7 +92,7 @@ function setLang(lang) {
   if (lang === S.lang) return;
   const run = () => {
     S.lang = lang;
-    store.set('mc_lang', lang);
+    store.set('mt_lang', lang);
     html.lang = lang;
     html.dir = lang === 'ar' ? 'rtl' : 'ltr';
     applyStatic();
@@ -135,7 +132,7 @@ function ingest(menu) {
 }
 
 async function loadMenu() {
-  const cached = store.get('mc_menu_cache', null);
+  const cached = store.get('mt_menu_cache', null);
   if (cached?.items) {
     ingest(cached);
     renderAll();
@@ -149,7 +146,7 @@ async function loadMenu() {
   if (!fresh) return;
   const sig = (m) => JSON.stringify({ ...m, version: 0 });
   if (!cached || sig(cached) !== sig(fresh)) {
-    store.set('mc_menu_cache', fresh);
+    store.set('mt_menu_cache', fresh);
     ingest(fresh);
     renderAll();
   }
@@ -157,9 +154,12 @@ async function loadMenu() {
 
 const isOut = (item, bid = S.branchId) => Boolean(item.sold_out) || Boolean(bid && item.unavailable?.includes(bid));
 const minPrice = (item) => Math.min(...item.sizes.map((s) => s.price));
-const isBurgerCat = (catId) => Boolean(S.cats[catId]?.allows_addons || S.cats[catId]?.allows_combo);
-const addonsList = () => S.menu.items.filter((i) => i.is_addon && !isOut(i));
-const gramsOf = (size) => { const m = /^(\d+)g$/.exec(size.id); return m ? Number(m[1]) : null; };
+const optsOf = (item) => item?.options || [];
+const has = (item, opt) => optsOf(item).includes(opt);
+const dipsList = () => S.menu.items.filter((i) => i.is_dip && !isOut(i));
+const piecesOf = (size) => { const m = /^(\d+)pc$/.exec(size.id); return m ? Number(m[1]) : null; };
+const upsizePrice = () => Number(S.menu?.settings?.combo_price || 0);
+const talabatUrl = () => S.menu?.settings?.talabat || '';
 
 /* ════════════════════════ rendering ════════════════════════ */
 let firstRender = true;
@@ -189,27 +189,34 @@ let userMoved = false;
 function renderHeroMeta() {
   const st = S.menu.settings || {};
   const rating = st.google_rating || '4.9';
-  const reviews = Number(st.google_reviews || 7400);
+  const reviews = Number(st.google_reviews || 13000);
   $('#gScore').textContent = rating;
   $('#rvScore').textContent = rating;
   $('#gCount').textContent = `+${reviews.toLocaleString('en-US')}`;
 
-  // Live open/closed for the hero (open if any branch is open)
+  // Live open/closed for the hero: open if any branch is open, "till" the latest closing among the open ones
   const bs = Object.values(S.branches);
   const now = ammanNow();
-  const anyOpen = bs.some((b) => isOpenAt(b, now));
-  const ref = bs[0];
-  const dot = $('#heroDot');
-  dot.classList.toggle('is-closed', !anyOpen);
-  $('#heroOpen').textContent = ref
-    ? anyOpen ? t('heroOpen', { t: fmtClock(toMin(ref.close_time)) }) : t('heroClosed', { t: fmtClock(toMin(ref.open_time)) })
-    : '';
+  const open = bs.filter((b) => isOpenAt(b, now));
+  const left = (b) => (toMin(b.close_time) - now + 1440) % 1440 || 1440;
+  $('#heroDot').classList.toggle('is-closed', !open.length);
+  if (open.length) {
+    const last = open.reduce((a, b) => (left(b) > left(a) ? b : a));
+    $('#heroOpen').textContent = t('heroOpen', { t: fmtClock(toMin(last.close_time)) });
+  } else if (bs.length) {
+    const soon = bs.reduce((a, b) => (((toMin(b.open_time) - now + 1440) % 1440) < ((toMin(a.open_time) - now + 1440) % 1440) ? b : a));
+    $('#heroOpen').textContent = t('heroClosed', { t: fmtClock(toMin(soon.open_time)) });
+  }
 
-  // Combo prices in the story
-  const combo = Number(st.combo_price || 1500);
-  $('#comboPrice').textContent = `+${money(combo)}`;
-  const smash = S.items.smash;
-  $('#comboCtaPrice').textContent = smash ? money(minPrice(smash) + combo) : '';
+  // Talabat links
+  const tal = talabatUrl();
+  $$('#heroTalabat, #footTalabat, #talabatBtn').forEach((a) => { a.hidden = !tal; if (tal) a.href = tal; });
+
+  // The full-meal scene sells the 5-piece tenders meal
+  const meal = S.items['tenders-meal'];
+  const size = meal && (meal.sizes.find((s) => s.id === $('[data-open-meal]').dataset.size) || meal.sizes[meal.sizes.length - 1]);
+  $('#mealPrice').textContent = size ? money(size.price) : '';
+  $('#mealCtaPcs').textContent = size ? `${size[S.lang]} · ${money(size.price)}` : '';
 
   // Announcement
   const ann = L(st, 'announcement');
@@ -219,10 +226,18 @@ function renderHeroMeta() {
 }
 
 function tagChips(item, withNote = false) {
-  const map = { spicy: 'chili', grilled: 'grill', signature: 'star', new: 'flame' };
+  const map = { spicy: 'chili', grilled: 'grill', signature: 'star', new: 'bolt' };
   let out = (item.tags || []).filter((x) => map[x]).map((x) => `<span class="tag tag--${x}">${icon(map[x])}${esc(t(`tag_${x}`))}</span>`).join('');
   if (withNote && L(item, 'note')) out += `<span class="tag tag--note">${esc(L(item, 'note'))}</span>`;
   return out;
+}
+
+// Price "ticket" like the in-store menu boards: [ 3 pcs | 4.50 ]
+function ticket(item) {
+  const s = item.sizes;
+  const lo = s.reduce((a, b) => (b.price < a.price ? b : a));
+  const label = s.length > 1 ? t('from') : (s[0].id === 'one' ? '' : s[0][S.lang]);
+  return `<span class="ticket">${label ? `<i>${esc(label)}</i>` : ''}<b>${money(lo.price)}</b></span>`;
 }
 
 function cardHTML(item, idx) {
@@ -232,23 +247,28 @@ function cardHTML(item, idx) {
   return `<article class="card reveal${out ? ' is-out' : ''}" data-id="${esc(item.id)}" data-search="${esc(norm(search))}" style="--rd:${(idx % 3) * 70}ms">
     ${out ? `<span class="stamp">${esc(t('soldOut'))}</span>` : ''}
     <button class="card__hit" type="button" data-open="${esc(item.id)}" aria-label="${esc(name)}"></button>
-    <div class="card__media"><img src="${esc(item.image)}" alt="" loading="lazy" decoding="async" width="560" height="460"></div>
-    <h4 class="card__title">${esc(name)}<span class="card__alt">${esc(other(item, 'name'))}</span></h4>
-    <p class="card__desc">${esc(L(item, 'desc'))}</p>
-    <div class="card__tags">${tagChips(item, true)}</div>
-    <div class="card__foot">
-      <span class="price">${item.sizes.length > 1 ? priceHTML(minPrice(item), t('from')) : priceHTML(minPrice(item))}</span>
-      <button class="card__add" type="button" data-quick="${esc(item.id)}" aria-label="${esc(`${t('addToOrder')}: ${name}`)}" ${out ? 'disabled' : ''}>${icon('plus')}<span>${esc(t('add'))}</span></button>
+    <div class="card__media"><img src="${esc(item.image)}" alt="" loading="lazy" decoding="async" width="560" height="420"></div>
+    <div class="card__body">
+      <h4 class="card__title">${esc(name)}<span class="card__alt">${esc(other(item, 'name'))}</span></h4>
+      <p class="card__desc">${esc(L(item, 'desc'))}</p>
+      <div class="card__tags">${tagChips(item, true)}</div>
+      <div class="card__foot">
+        ${ticket(item)}
+        <button class="card__add" type="button" data-quick="${esc(item.id)}" aria-label="${esc(`${t('addToOrder')}: ${name}`)}" ${out ? 'disabled' : ''}>${icon('plus')}<span>${esc(t('add'))}</span></button>
+      </div>
     </div>
   </article>`;
 }
 
+function swatch(item, tag = 'span') {
+  const c = DIP_COLORS[item.id];
+  return c ? `<${tag} class="swatch" style="--c:${c}"></${tag}>` : '';
+}
 function miniIcon(item) {
   if (item.category_id === 'drinks') return 'can';
-  if (item.category_id === 'sauces') return 'drop';
-  if (item.id === 'extra-cheezzy' || item.id === 'extra-cheddar') return 'cheese';
-  if (item.id === 'extra-patty' || item.id === 'extra-bacon') return 'burger';
-  return 'plus';
+  if (item.category_id === 'sweets') return 'cookie';
+  if (item.category_id === 'dips') return 'drop';
+  return 'tender';
 }
 
 function miniHTML(item) {
@@ -256,11 +276,20 @@ function miniHTML(item) {
   const search = `${item.name_ar} ${item.name_en} ${item.desc_ar} ${item.desc_en}`;
   const sub = [L(item, 'desc'), L(item, 'note')].filter(Boolean).join(' · ') || (out ? t('soldOut') : other(item, 'name'));
   const multi = item.sizes.length > 1;
+  const dot = swatch(item);
   return `<div class="mini reveal${out ? ' is-out' : ''}" data-id="${esc(item.id)}" data-search="${esc(norm(search))}">
-    <span class="mini__ic">${icon(miniIcon(item))}</span>
-    <div class="mini__body"><h4>${esc(L(item, 'name'))}</h4><small>${esc(out ? t('soldOut') : sub)}</small></div>
+    <span class="mini__ic">${dot || icon(miniIcon(item))}</span>
+    <div class="mini__body"><h4>${esc(L(item, 'name'))}${(item.tags || []).includes('spicy') ? icon('chili', 'mini__hot') : ''}</h4><small>${esc(out ? t('soldOut') : sub)}</small></div>
     <div class="mini__sizes">${item.sizes.map((s) => `<button class="mini__btn" type="button" data-add="${esc(item.id)}" data-size="${esc(s.id)}" aria-label="${esc(`${t('addToOrder')}: ${L(item, 'name')} ${multi ? s[S.lang] : ''}`)}" ${out ? 'disabled' : ''}>${icon('plus')}${multi ? `<small>${esc(s[S.lang])}</small> ` : ''}${money(s.price)}</button>`).join('')}</div>
   </div>`;
+}
+
+function renderPicks() {
+  const picks = S.menu.items.filter((i) => i.featured && i.image && !isOut(i));
+  $('#picksWrap').hidden = !picks.length;
+  $('#picks').innerHTML = picks.map((i) => `<button class="pick" type="button" data-open="${esc(i.id)}">
+    <span class="pick__img"><img src="${esc(smImg(i.image))}" alt="" loading="lazy" decoding="async" width="220" height="165"></span>
+    <b>${esc(L(i, 'name'))}</b><span class="pick__price">${money(minPrice(i))} <small>${esc(t('cur'))}</small></span></button>`).join('');
 }
 
 function renderMenu() {
@@ -288,6 +317,7 @@ function renderMenu() {
   const b = branch();
   $('#menuBranchNote').textContent = b ? t('menuSubBranch', { b: L(b, 'name') }) : t('menuSub');
 
+  renderPicks();
   observeReveals();
   setupScrollSpy();
   const activeTab = $('#tabs button[aria-selected="true"]');
@@ -295,7 +325,12 @@ function renderMenu() {
   if ($('#search').value) runSearch();
 }
 
-const BRANCH_PHOTOS = { abdoun: '/img/branches/abdoun', mecca: '/img/branches/mecca' };
+const BRANCH_PHOTOS = {
+  'marj-al-hamam': '/img/branches/marj-al-hamam',
+  'seventh-circle': '/img/branches/seventh-circle',
+  'mecca-mall': '/img/branches/mecca-mall',
+  khalda: '/img/branches/khalda',
+};
 const branchPhoto = (b) => {
   const base = BRANCH_PHOTOS[b.id];
   if (!base) return '';
@@ -318,7 +353,7 @@ function renderBranches() {
         <span>${icon(b.delivery ? 'scooter' : 'store')}${esc(b.delivery ? t('deliveryOn') : t('pickupOnly'))}</span>
       </div>
       <div class="bcard__actions">
-        <button class="btn btn--yellow" type="button" data-order-branch="${esc(b.id)}">${icon('bag')}${esc(t('orderHere'))}</button>
+        <button class="btn btn--gold" type="button" data-order-branch="${esc(b.id)}">${icon('bag')}${esc(t('orderHere'))}</button>
         ${b.maps_url ? `<a class="btn btn--ghost" href="${esc(b.maps_url)}" target="_blank" rel="noopener">${icon('pin')}${esc(t('directions'))}</a>` : ''}
         ${b.whatsapp ? `<a class="btn btn--wa" href="https://wa.me/${esc(b.whatsapp)}?text=${waText}" target="_blank" rel="noopener">${icon('wa')}${esc(t('whatsapp'))}</a>` : ''}
         ${b.phone ? `<a class="btn btn--ghost" href="tel:${esc(b.phone)}" aria-label="${esc(`${t('call')} ${L(b, 'name')}`)}">${icon('phone')}${esc(t('call'))}</a>` : ''}
@@ -336,7 +371,7 @@ function mapQuery(b) {
     const q = new URL(b.maps_url).searchParams.get('query') || new URL(b.maps_url).searchParams.get('q');
     if (q) return q;
   } catch { /* not a URL */ }
-  return `Meat and Cheezz ${b.name_en} Amman`;
+  return `Mama's Tenders ${b.name_en} Amman`;
 }
 function setMap(id) {
   const b = S.branches[id];
@@ -361,12 +396,12 @@ function setupMap() {
 }
 
 function renderQuotes() {
-  const card = (q) => `<figure class="quote">
+  $('#quotes').innerHTML = QUOTES.map((q) => `<figure class="quote reveal">
     <div class="quote__stars">${icon('star').repeat(5)}</div>
     <p lang="en" dir="ltr">“${esc(q.t)}”</p>
-    <small>${icon('google')}${esc(q.k === 'summary' ? t('gSummary') : t('gReview'))}</small>
-  </figure>`;
-  $('#quotes').innerHTML = QUOTES.filter((q) => q.k === 'review').slice(0, 3).map(card).join('');
+    <small>${icon('google')}${esc(t('gReview'))}${S.branches[q.b] ? ` · ${esc(L(S.branches[q.b], 'name'))}` : ''}</small>
+  </figure>`).join('');
+  observeReveals();
 }
 
 function renderFooter() {
@@ -378,12 +413,14 @@ function renderFooter() {
     `<a href="${esc(b.maps_url || '#branches')}" target="_blank" rel="noopener">${esc(L(b, 'name'))} — ${esc(L(b, 'address'))}</a>`).join('');
   const first = Object.values(S.branches)[0];
   if (first?.phone) { const fp = $('#footPhone'); fp.href = `tel:${first.phone}`; fp.textContent = prettyPhone(first.phone); }
+  if (first?.whatsapp) { const fw = $('#footWa'); fw.href = `https://wa.me/${first.whatsapp}`; fw.textContent = `WhatsApp ${prettyPhone(first.whatsapp)}`; }
   $('#year').textContent = String(new Date().getFullYear());
 }
 
 function prettyPhone(p) {
   const d = String(p).replace(/\D/g, '');
-  if (d.startsWith('962') && d.length === 12) return `+962 ${d[3]} ${d.slice(4, 8)} ${d.slice(8)}`;
+  if (d.startsWith('9627') && d.length === 12) return `+962 ${d.slice(3, 5)} ${d.slice(5, 8)} ${d.slice(8)}`;
+  if (d.startsWith('962') && d.length === 11) return `+962 ${d[3]} ${d.slice(4, 7)} ${d.slice(7)}`;
   return p;
 }
 
@@ -416,6 +453,7 @@ function runSearch() {
     cat.hidden = visible === 0;
     if (visible) any = true;
   });
+  $('#picksWrap').classList.toggle('is-searching', Boolean(words.length));
   $('#menuEmpty').hidden = any;
 }
 
@@ -449,7 +487,7 @@ function setupScrollSpy() {
   $$('.cat').forEach((c) => spy.observe(c));
 }
 
-/* ════════════════════════ reveal & counters ════════════════════════ */
+/* ════════════════════════ reveal ════════════════════════ */
 let revealer;
 function observeReveals() {
   if (reduced || !('IntersectionObserver' in window)) { $$('.reveal').forEach((el) => el.classList.add('in')); return; }
@@ -556,7 +594,7 @@ function fly(fromEl, src) {
   const size = clamp(Math.min(a.width, a.height || a.width), 44, 150);
   let el;
   if (src) { el = new Image(); el.src = src; el.alt = ''; }
-  else { el = document.createElement('div'); el.style.cssText = 'border-radius:50%;background:var(--yellow);box-shadow:0 0 0 6px rgba(255,212,0,.25)'; }
+  else { el = document.createElement('div'); el.style.cssText = 'border-radius:50%;background:var(--gold);box-shadow:0 0 0 6px rgba(255,184,28,.25)'; }
   el.className = 'flyer';
   el.style.width = `${size}px`;
   el.style.height = `${size}px`;
@@ -584,16 +622,15 @@ function fly(fromEl, src) {
 }
 
 /* ════════════════════════ cart model ════════════════════════ */
-const lineKey = (l) => [l.id, l.size, l.combo ? 1 : 0, [...(l.addons || [])].sort().join('+'), (l.note || '').trim()].join('|');
-function saveCart() { store.set('mc_cart', S.cart); }
+// A line: { id, size, qty, upsize, heat, flavour, dip, note } — heat/flavour/dip only when the item offers them
+const lineKey = (l) => [l.id, l.size, l.upsize ? 1 : 0, l.heat || '', l.flavour || '', l.dip || '', (l.note || '').trim()].join('|');
+function saveCart() { store.set('mt_cart', S.cart); }
 function linePrice(l) {
   const item = S.items[l.id];
   if (!item) return 0;
   const size = item.sizes.find((s) => s.id === l.size) || item.sizes[0];
-  const cat = S.cats[item.category_id] || {};
-  const combo = l.combo && cat.allows_combo ? Number(S.menu.settings?.combo_price || 0) : 0;
-  const adds = cat.allows_addons ? (l.addons || []).reduce((s, id) => s + (S.items[id]?.sizes[0]?.price || 0), 0) : 0;
-  return (size.price + combo + adds) * l.qty;
+  const up = l.upsize && has(item, 'upsize') ? upsizePrice() : 0;
+  return (size.price + up) * l.qty;
 }
 const cartTotal = () => S.cart.reduce((s, l) => s + linePrice(l), 0);
 const cartCount = () => S.cart.reduce((s, l) => s + l.qty, 0);
@@ -621,30 +658,37 @@ function updateCartBadges(bump) {
   updateDock();
 }
 
+// Labels for a line's choices, e.g. ["Spicy", "Flavour: BBQ", "Dip: Ranch", "Upsized"]
+function choiceLabels(l) {
+  const out = [];
+  if (l.heat) out.push(t(`heat_${l.heat}`));
+  if (l.flavour) out.push(`${t('flavourLbl')}: ${t(`flv_${l.flavour}`)}`);
+  if (l.dip && S.items[l.dip]) out.push(`${t('dipLbl')}: ${L(S.items[l.dip], 'name')}`);
+  if (l.upsize) out.push(t('upsizeLbl'));
+  return out;
+}
+
 /* ════════════════════════ item sheet ════════════════════════ */
 const sheet = $('#sheet');
 let current = null; // { item, qty }
 
-const DRIPS_SVG = '<svg viewBox="0 0 300 120" preserveAspectRatio="none" aria-hidden="true"><path fill="currentColor" d="M0 0h300v22c-10 0-12 8-12 20s-5 30-12 30-11-22-11-32-4-14-12-14-10 6-10 16 2 54-12 54-12-40-12-54-5-16-14-16-10 5-10 14 0 24-11 24-10-16-10-24-4-12-12-12-13 6-13 18-1 40-12 40-12-28-12-40-4-16-13-16-11 8-11 18-3 14-11 14-9-8-9-16-5-12-13-12-12 4-12 12 0 30-12 30-12-22-12-30-4-14-12-14H0z"/></svg>';
-
 function openSheet(id, fromImg, opts = {}) {
   const item = S.items[id];
   if (!item) return;
-  const cat = S.cats[item.category_id] || {};
   const out = isOut(item);
   const b = branch();
   current = { item, qty: 1 };
-  const grams = item.sizes.map(gramsOf);
-  const isGrams = grams.every((g) => g);
-  const defaultSize = item.sizes[item.sizes.length > 2 ? 1 : 0];
-  const addons = cat.allows_addons ? addonsList().filter((a) => a.id !== item.id) : [];
-  const cheezzy = addons.find((a) => a.id === 'extra-cheezzy');
-  const otherAddons = addons.filter((a) => a.id !== 'extra-cheezzy');
+  const pcs = item.sizes.map(piecesOf);
+  const isPcs = pcs.every((n) => n);
+  const defaultSize = item.sizes.find((s) => s.id === opts.size) || item.sizes[item.sizes.length > 2 ? 1 : 0];
+  const dips = has(item, 'dip') ? dipsList() : [];
+  const sameName = (a, c) => a.name_en.toLowerCase().includes(c) ? 1 : 0;
+  const defaultDip = dips.find((d) => sameName(d, 'mama')) || dips[0];
 
   $('#sheetBody').innerHTML = `
     <div class="si__hero">
-      ${item.image ? `<img id="sheetImg" src="${esc(item.image)}" alt="${esc(L(item, 'name'))}" width="560" height="460">` : `<span class="si__ic">${icon(miniIcon(item))}</span>`}
-      <div class="si__drips" id="siDrips">${DRIPS_SVG}</div>
+      ${item.image ? `<img id="sheetImg" src="${esc(item.image)}" alt="${esc(L(item, 'name'))}" width="560" height="420">` : `<span class="si__ic">${swatch(item) || icon(miniIcon(item))}</span>`}
+      <div class="si__flames" id="siFlames" aria-hidden="true">${icon('flame')}${icon('flame')}${icon('flame')}</div>
     </div>
     <h2 class="si__title" id="sheetTitle">${esc(L(item, 'name'))}</h2>
     <div class="si__alt">${esc(other(item, 'name'))}</div>
@@ -653,31 +697,33 @@ function openSheet(id, fromImg, opts = {}) {
     ${out ? `<div class="si__out">${esc(item.sold_out || !b ? t('soldOut') : t('soldOutAt', { b: L(b, 'name') }))}</div>` : ''}
     ${item.sizes.length > 1 ? `
       <div class="si__sec">
-        <h4>${esc(isGrams ? t('chooseWeight') : t('chooseSize'))}${isGrams ? `<small>${esc(t('weightHint'))}</small>` : ''}</h4>
+        <h4>${esc(isPcs ? t('choosePcs') : t('chooseSize'))}${isPcs ? `<small>${esc(t('pcsHint'))}</small>` : ''}</h4>
         <div class="sizes" role="radiogroup">
           ${item.sizes.map((s) => `<label><input type="radio" name="size" value="${esc(s.id)}" ${s.id === defaultSize.id ? 'checked' : ''}><span><b>${esc(s[S.lang])}</b><small>${money(s.price)}</small></span></label>`).join('')}
         </div>
-        ${isGrams ? `<div class="patty-meter" aria-hidden="true">
-          <div class="pm-burger"><i class="pm-top"></i><i class="pm-cheese"></i><i class="pm-patty" id="pmPatty"></i><i class="pm-bottom"></i></div>
-          <span class="pm-text" id="pmText"></span></div>` : ''}
+        ${isPcs ? `<div class="pc-meter" id="pcMeter" aria-hidden="true">${icon('tender').repeat(Math.min(6, Math.max(...pcs)))}<b id="pcCount"></b></div>` : ''}
       </div>` : ''}
-    ${cat.allows_combo ? `
+    ${has(item, 'heat') ? `
+      <div class="si__sec"><h4>${esc(t('heatTitle'))}</h4>
+        <div class="heat" role="radiogroup">
+          <label class="heat__opt heat__opt--spicy"><input type="radio" name="heat" value="spicy" checked><span>${icon('flame')}<b>${esc(t('heat_spicy'))}</b><small>${esc(t('heatSpicySub'))}</small></span></label>
+          <label class="heat__opt heat__opt--mild"><input type="radio" name="heat" value="mild"><span>${icon('leaf')}<b>${esc(t('heat_mild'))}</b><small>${esc(t('heatMildSub'))}</small></span></label>
+        </div></div>` : ''}
+    ${has(item, 'flavour') ? `
+      <div class="si__sec"><h4>${esc(t('flavourTitle'))}</h4>
+        <div class="choices" role="radiogroup">${FLAVOURS.map((f, i) => `<label><input type="radio" name="flavour" value="${f.id}" ${i === 0 ? 'checked' : ''}><span><i class="swatch" style="--c:${f.c}"></i>${esc(t(`flv_${f.id}`))}</span></label>`).join('')}</div></div>` : ''}
+    ${dips.length ? `
+      <div class="si__sec"><h4>${esc(t('dipTitle'))}<small>${esc(t('dipHint'))}</small></h4>
+        <div class="choices" role="radiogroup">${dips.map((d) => `<label><input type="radio" name="dip" value="${esc(d.id)}" ${d === defaultDip ? 'checked' : ''}><span>${swatch(d, 'i')}${esc(L(d, 'name'))}</span></label>`).join('')}</div></div>` : ''}
+    ${has(item, 'upsize') ? `
       <div class="si__sec">
-        <label class="opt"><input type="checkbox" name="combo"><span class="opt__ic">${icon('fries')}${icon('can')}</span>
-          <span class="opt__body"><b>${esc(t('comboTitle'))}</b><small>${esc(t('comboDesc'))}</small></span>
-          <span class="opt__price">+${money(Number(S.menu.settings?.combo_price || 0))}</span><span class="opt__sw"></span></label>
-        ${cheezzy ? `<label class="opt opt--cheezzy"><input type="checkbox" name="addon" value="extra-cheezzy"><span class="opt__ic">${icon('cheese')}</span>
-          <span class="opt__body"><b>${esc(L(cheezzy, 'name'))}</b><small>${esc(L(cheezzy, 'desc') || t('cheezzyDesc'))}</small></span>
-          <span class="opt__price">+${money(cheezzy.sizes[0].price)}</span><span class="opt__sw"></span></label>` : ''}
-      </div>` : ''}
-    ${otherAddons.length ? `
-      <div class="si__sec"><h4>${esc(t('addonsTitle'))}</h4>
-        <div class="addons">${otherAddons.map((a) => `<label><input type="checkbox" name="addon" value="${esc(a.id)}"><span>${icon('plus')}${esc(L(a, 'name'))} <em>+${money(a.sizes[0].price)}</em></span></label>`).join('')}</div>
+        <label class="opt"><input type="checkbox" name="upsize"><span class="opt__ic">${icon('fries')}${icon('can')}</span>
+          <span class="opt__body"><b>${esc(t('upsizeTitle'))}</b><small>${esc(t('upsizeDesc'))}</small></span>
+          <span class="opt__price">+${money(upsizePrice())}</span><span class="opt__sw"></span></label>
       </div>` : ''}
     <div class="si__sec"><h4>${esc(t('noteTitle'))}</h4>
       <textarea class="si__note" name="note" rows="1" maxlength="140" placeholder="${esc(t('notePh'))}"></textarea></div>`;
 
-  if (opts.combo) { const c = $('#sheetBody input[name="combo"]'); if (c) c.checked = true; }
   $('#sheetAdd').disabled = out;
   $('#sheetQtyVal').textContent = '1';
   $('#sheetTotal').dataset.v = '';
@@ -698,11 +744,18 @@ function openSheet(id, fromImg, opts = {}) {
 function readSheet() {
   const body = $('#sheetBody');
   const { item } = current;
-  const size = body.querySelector('input[name="size"]:checked')?.value || item.sizes[0].id;
-  const combo = Boolean(body.querySelector('input[name="combo"]')?.checked);
-  const addons = $$('input[name="addon"]:checked', body).map((i) => i.value);
-  const note = (body.querySelector('textarea[name="note"]')?.value || '').trim().slice(0, 140);
-  return { id: item.id, size, qty: current.qty, combo, addons, note };
+  const val = (name) => body.querySelector(`input[name="${name}"]:checked`)?.value || '';
+  const line = {
+    id: item.id,
+    size: val('size') || item.sizes[0].id,
+    qty: current.qty,
+    upsize: Boolean(body.querySelector('input[name="upsize"]')?.checked),
+    note: (body.querySelector('textarea[name="note"]')?.value || '').trim().slice(0, 140),
+  };
+  if (has(item, 'heat')) line.heat = val('heat') || 'spicy';
+  if (has(item, 'flavour')) line.flavour = val('flavour') || FLAVOURS[0].id;
+  if (has(item, 'dip') && val('dip')) line.dip = val('dip');
+  return line;
 }
 
 function updateSheet() {
@@ -710,10 +763,13 @@ function updateSheet() {
   const line = readSheet();
   odo($('#sheetTotal'), money(linePrice(line)));
   const size = current.item.sizes.find((s) => s.id === line.size);
-  const g = size && gramsOf(size);
-  const patty = $('#pmPatty');
-  if (patty && g) { patty.style.setProperty('--g', String(g / 100)); $('#pmText').textContent = `${g}g`; }
-  $('#siDrips')?.classList.toggle('on', line.addons.includes('extra-cheezzy'));
+  const n = size && piecesOf(size);
+  const meter = $('#pcMeter');
+  if (meter && n) {
+    $$('.ic', meter).forEach((ic, i) => ic.classList.toggle('on', i < n));
+    $('#pcCount').textContent = n > 6 ? `×${n}` : '';
+  }
+  $('#siFlames')?.classList.toggle('on', line.heat === 'spicy' || (current.item.tags || []).includes('spicy') && !line.heat);
 }
 
 $('#sheetBody').addEventListener('change', updateSheet);
@@ -767,7 +823,7 @@ wireDialog(sheet, () => { closeDialog(sheet); current = null; });
 function quickAdd(id, sizeId, fromEl) {
   const item = S.items[id];
   if (!item || isOut(item)) return;
-  addLine({ id, size: sizeId || item.sizes[0].id, qty: 1, combo: false, addons: [], note: '' });
+  addLine({ id, size: sizeId || item.sizes[0].id, qty: 1, upsize: false, note: '' });
   const img = fromEl?.closest('.card, .up')?.querySelector('img');
   const src = item.image ? smImg(item.image) : '';
   fly(img || fromEl, src);
@@ -794,10 +850,10 @@ function renderCart() {
   const box = $('#cartLines');
   if (!S.menu) return;
   if (!S.cart.length) {
-    const last = store.get('mc_last_order', null);
-    box.innerHTML = `<div class="empty"><div class="empty__plate">${icon('burger')}</div>
+    const last = store.get('mt_last_order', null);
+    box.innerHTML = `<div class="empty"><div class="empty__plate">${icon('tender')}</div>
       <h3>${esc(t('emptyTitle'))}</h3><p>${esc(t('emptyDesc'))}</p>
-      <button class="btn btn--yellow" type="button" data-browse>${esc(t('browseMenu'))}</button>
+      <button class="btn btn--gold" type="button" data-browse>${esc(t('browseMenu'))}</button>
       ${last?.lines?.length ? `<button class="btn btn--ghost" type="button" data-reorder>${icon('arrow', 'flip-rtl')}${esc(t('reorder'))}</button>` : ''}</div>`;
   } else {
     box.innerHTML = S.cart.map((l) => {
@@ -806,12 +862,11 @@ function renderCart() {
       const size = item.sizes.find((s) => s.id === l.size);
       const opts = [
         item.sizes.length > 1 && size ? size[S.lang] : '',
-        l.combo ? t('combo') : '',
-        ...(l.addons || []).map((a) => S.items[a] ? L(S.items[a], 'name') : ''),
+        ...choiceLabels(l),
         l.note ? `“${l.note}”` : '',
       ].filter(Boolean).join(' · ');
       return `<div class="cline" data-k="${esc(l.k)}">
-        <div class="cline__img">${item.image ? `<img src="${esc(smImg(item.image))}" alt="" loading="lazy" width="220" height="180">` : icon(miniIcon(item))}</div>
+        <div class="cline__img">${item.image ? `<img src="${esc(smImg(item.image))}" alt="" loading="lazy" width="220" height="165">` : swatch(item) || icon(miniIcon(item))}</div>
         <div><p class="cline__name">${esc(L(item, 'name'))}</p>${opts ? `<p class="cline__opts">${esc(opts)}</p>` : ''}
           ${isOut(item) ? `<p class="cline__opts" style="color:#ff8a73">${esc(t('soldOut'))}</p>` : ''}</div>
         <div class="cline__side">
@@ -823,7 +878,7 @@ function renderCart() {
   }
 
   // upsell
-  const sides = ['french-fries', 'curly-fries', 'onion-rings', 'mozzarella-sticks', 'cheese-dip', 'chicken-strips']
+  const sides = ['fries', 'cheese-balls', 'mozzarella', 'onion-rings', 'coleslaw', 'garlic-toast', 'cookies']
     .map((id) => S.items[id]).filter((i) => i && i.image && !isOut(i) && !S.cart.some((l) => l.id === i.id)).slice(0, 5);
   $('#upsell').innerHTML = S.cart.length && sides.length ? `<h4>${esc(t('upsellTitle'))}</h4><div class="upsell__row">${sides.map((i) =>
     `<div class="up"><img src="${esc(smImg(i.image))}" alt="" loading="lazy" width="220" height="150"><b>${esc(L(i, 'name'))}</b>
@@ -837,7 +892,7 @@ function renderCart() {
 $('#cartLines').addEventListener('click', (e) => {
   if (e.target.closest('[data-browse]')) { closeCart(); setTimeout(() => $('#menu').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' }), 250); return; }
   if (e.target.closest('[data-reorder]')) {
-    const last = store.get('mc_last_order', null);
+    const last = store.get('mt_last_order', null);
     if (last?.lines) {
       for (const l of last.lines) if (S.items[l.id] && !isOut(S.items[l.id])) addLine({ ...l });
       toast(t('reordered'));
@@ -873,13 +928,21 @@ function goStep(n, animate = true) {
   if (!animate) { track.style.transition = 'none'; requestAnimationFrame(() => { track.style.transition = ''; }); }
   track.style.setProperty('--step', String(n));
   ['#paneCart', '#paneDetails', '#paneReview'].forEach((sel, i) => { $(sel).inert = i !== n; });
-  $$('#steps li').forEach((li, i) => li.classList.toggle('on', i <= n));
+  $$('#cartSteps li').forEach((li, i) => li.classList.toggle('on', i <= n));
   $('#cartBack').hidden = n === 0 || Boolean(S.sent);
   updateFoot();
   if (n === 1) renderForm();
   if (n === 2 && !S.sent) renderReceipt(true);
   const pane = [$('#paneCart'), $('#paneDetails'), $('#paneReview')][n];
   if (pane) pane.scrollTop = 0;
+}
+
+// Delivery picked, but the chosen branch (or, before choosing, every branch) only does pickup → send them to Talabat
+function deliveryBlocked() {
+  if (getMode() !== 'delivery') return false;
+  const id = form.querySelector('input[name="branch"]:checked')?.value || S.branchId;
+  const b = S.branches[id];
+  return b ? !b.delivery : !Object.values(S.branches).some((x) => x.delivery);
 }
 
 function updateFoot() {
@@ -892,10 +955,11 @@ function updateFoot() {
   else if (S.step === 1) label.textContent = t('review');
   else label.textContent = t('sendWa');
   btn.classList.toggle('btn--wa', S.step === 2 && !S.sent);
-  btn.classList.toggle('btn--yellow', !(S.step === 2 && !S.sent));
+  btn.classList.toggle('btn--gold', !(S.step === 2 && !S.sent));
   const note = $('#cartNote');
-  if (st.orders_enabled === '0') { note.textContent = t('ordersOff'); if (S.step > 0 && !S.sent) btn.disabled = true; }
-  else note.textContent = S.step >= 1 && getMode() === 'delivery' && !S.sent ? (L(st, 'delivery_note') || t('deliveryNoteDefault')) : '';
+  if (st.orders_enabled === '0') { note.textContent = t('ordersOff'); if (S.step > 0 && !S.sent) btn.disabled = true; return; }
+  if (S.step === 1 && deliveryBlocked()) { btn.disabled = true; note.textContent = t('noDelivery'); return; }
+  note.textContent = S.step >= 1 && getMode() === 'delivery' && !S.sent ? (L(st, 'delivery_note') || t('deliveryNoteDefault')) : '';
 }
 
 $('#cartNext').addEventListener('click', () => {
@@ -915,8 +979,15 @@ $('#cartBack').addEventListener('click', () => goStep(Math.max(0, S.step - 1)));
 const form = $('#checkoutForm');
 const getMode = () => form.querySelector('input[name="mode"]:checked')?.value || 'pickup';
 
+function syncMode() {
+  const blocked = deliveryBlocked();
+  $('#talabatCard').hidden = !blocked || !talabatUrl();
+  $('#addrField').hidden = getMode() !== 'delivery' || blocked;
+  updateFoot();
+}
+
 function renderForm() {
-  const saved = store.get('mc_customer', {});
+  const saved = store.get('mt_customer', {});
   if (!form.dataset.filled) {
     form.dataset.filled = '1';
     if (saved.name) $('#fName').value = saved.name;
@@ -928,9 +999,8 @@ function renderForm() {
     const st = branchStatus(b);
     return `<label><input type="radio" name="branch" value="${esc(b.id)}" ${S.branchId === b.id ? 'checked' : ''}><span><b>${esc(L(b, 'name'))}</b><small class="${st.open ? '' : 'is-closed'}">${esc(st.label)}</small></span></label>`;
   }).join('');
-  $('#addrField').hidden = getMode() !== 'delivery';
   renderTimes();
-  updateFoot();
+  syncMode();
 }
 
 function renderTimes() {
@@ -956,8 +1026,8 @@ function renderTimes() {
 }
 
 form.addEventListener('change', (e) => {
-  if (e.target.name === 'mode') { $('#addrField').hidden = getMode() !== 'delivery'; updateFoot(); }
-  if (e.target.name === 'branch') { selectBranch(e.target.value, false); renderTimes(); }
+  if (e.target.name === 'mode') syncMode();
+  if (e.target.name === 'branch') { selectBranch(e.target.value, false); renderTimes(); syncMode(); }
   if (e.target.name === 'when') renderTimes();
   e.target.closest('.field')?.classList.remove('is-bad');
 });
@@ -1010,7 +1080,7 @@ function validateForm() {
   if ($('#fName').value.trim().length < 2) firstBad.push(bad('#fName'));
   if (!normPhone($('#fPhone').value)) firstBad.push(bad('#fPhone'));
   const mode = getMode();
-  if (mode === 'delivery' && $('#fAddr').value.trim().length < 4 && !S.geo) firstBad.push(bad('#fAddr'));
+  if (mode === 'delivery' && !deliveryBlocked() && $('#fAddr').value.trim().length < 4 && !S.geo) firstBad.push(bad('#fAddr'));
   if (firstBad.length) { firstBad[0].scrollIntoView({ block: 'center', behavior: reduced ? 'auto' : 'smooth' }); return false; }
 
   const b = S.branches[branchId];
@@ -1019,7 +1089,7 @@ function validateForm() {
   const outs = S.cart.filter((l) => isOut(S.items[l.id], branchId)).map((l) => L(S.items[l.id], 'name'));
   if (outs.length) { toast(t('outWarn', { list: outs.join(S.lang === 'ar' ? '، ' : ', ') }), 'close'); return false; }
 
-  store.set('mc_customer', { name: $('#fName').value.trim(), phone: $('#fPhone').value.trim(), address: $('#fAddr').value.trim(), mode });
+  store.set('mt_customer', { name: $('#fName').value.trim(), phone: $('#fPhone').value.trim(), address: $('#fAddr').value.trim(), mode });
   return true;
 }
 
@@ -1027,7 +1097,7 @@ function validateForm() {
 function newOrderId() {
   const abc = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   const r = crypto.getRandomValues(new Uint8Array(5));
-  return `MC-${[...r].map((x) => abc[x % abc.length]).join('')}`;
+  return `MT-${[...r].map((x) => abc[x % abc.length]).join('')}`;
 }
 
 function orderData() {
@@ -1051,8 +1121,10 @@ function orderData() {
 
 function lineOpts(l) {
   const out = [];
-  if (l.combo) out.push(t('comboTitle') + (S.lang === 'ar' ? ' (بطاطا + مشروب)' : ' (fries + drink)'));
-  if (l.addons?.length) out.push(`${t('addonsLbl')}: ${l.addons.map((a) => (S.items[a] ? L(S.items[a], 'name') : a)).join(S.lang === 'ar' ? '، ' : ', ')}`);
+  if (l.heat) out.push(`${l.heat === 'spicy' ? '🌶️ ' : ''}${t(`heat_${l.heat}`)}`);
+  if (l.flavour) out.push(`${t('flavourLbl')}: ${t(`flv_${l.flavour}`)}`);
+  if (l.dip && S.items[l.dip]) out.push(`${t('dipLbl')}: ${L(S.items[l.dip], 'name')}`);
+  if (l.upsize) out.push(`${t('upsizeTitle')} (+${money(upsizePrice())})`);
   if (l.note) out.push(`${t('noteLbl')}: ${l.note}`);
   return out;
 }
@@ -1061,13 +1133,13 @@ function buildMessage(o) {
   const ar = S.lang === 'ar';
   const sep = '━━━━━━━━━━━━━━';
   const rows = [];
-  rows.push(ar ? '🍔 *طلب جديد — MEAT AND CHEEZZ*' : '🍔 *New order — MEAT AND CHEEZZ*');
+  rows.push(ar ? '🍗 *طلب جديد — MAMA’S TENDERS*' : '🍗 *New order — MAMA’S TENDERS*');
   rows.push(`${ar ? 'رقم الطلب' : 'Order no.'}: *${o.id}*`);
   rows.push(`${ar ? 'الفرع' : 'Branch'}: ${L(o.branch, 'name')}`);
   rows.push(`${ar ? 'النوع' : 'Type'}: ${o.mode === 'delivery' ? `${t('delivery')} 🛵` : `${t('pickup')} 🏪`}`);
   rows.push(sep);
   for (const l of o.lines) {
-    const size = l.item.sizes.length > 1 ? (l.item.sizes.find((s) => s.id === l.size) || {})[S.lang] : '';
+    const size = l.item.sizes.length > 1 || l.item.sizes[0].id !== 'one' ? (l.item.sizes.find((s) => s.id === l.size) || {})[S.lang] : '';
     const nm = ar ? `${l.item.name_ar} (${l.item.name_en})` : l.item.name_en;
     rows.push(`*${l.qty}× ${nm}*${size ? ` — ${size}` : ''}`);
     for (const opt of lineOpts(l)) rows.push(`   ▫️ ${opt}`);
@@ -1100,9 +1172,9 @@ function renderReceipt(animate) {
     [t('time'), o.when],
     ...(o.notes ? [[t('notes'), o.notes]] : []),
   ];
-  r.innerHTML = `<h3>MEAT &amp; CHEEZZ</h3><div class="rc-sub">${esc(t('receiptSub'))}</div><hr>
+  r.innerHTML = `<h3>MAMA’S TENDERS</h3><div class="rc-sub">${esc(t('receiptSub'))}</div><hr>
     ${o.lines.map((l) => {
-      const size = l.item.sizes.length > 1 ? (l.item.sizes.find((s) => s.id === l.size) || {})[S.lang] : '';
+      const size = l.item.sizes.length > 1 || l.item.sizes[0].id !== 'one' ? (l.item.sizes.find((s) => s.id === l.size) || {})[S.lang] : '';
       return `<div class="rc-row"><span>${l.qty}× ${esc(L(l.item, 'name'))}${size ? ` · ${esc(size)}` : ''}</span><span>${money(l.price)}</span></div>
         ${lineOpts(l).map((x) => `<div class="rc-opts">${esc(x)}</div>`).join('')}`;
     }).join('')}
@@ -1126,7 +1198,7 @@ function sendOrder() {
   // Log for the dashboard (fire-and-forget; never blocks the customer)
   const payload = JSON.stringify({
     id: o.id, branch_id: o.branch.id, mode: o.mode, name: o.name, phone: o.phone, lang: S.lang,
-    lines: o.lines.map((l) => ({ item_id: l.id, size_id: l.size, qty: l.qty, combo: l.combo, addons: l.addons, note: l.note })),
+    lines: o.lines.map((l) => ({ item_id: l.id, size_id: l.size, qty: l.qty, upsize: l.upsize, heat: l.heat, flavour: l.flavour, dip: l.dip, note: l.note })),
   });
   try {
     const ok = navigator.sendBeacon?.('/api/orders', new Blob([payload], { type: 'application/json' }));
@@ -1142,7 +1214,7 @@ function sendOrder() {
   a.click();
   a.remove();
 
-  store.set('mc_last_order', { lines: S.cart.map(({ k, ...l }) => l), at: Date.now() });
+  store.set('mt_last_order', { lines: S.cart.map(({ k, ...l }) => l), at: Date.now() });
   S.sent = { id: o.id, url };
   S.orderId = null;
   renderDone();
@@ -1180,7 +1252,7 @@ function selectBranch(id, announce = true) {
   if (!S.branches[id]) return;
   const changed = S.branchId !== id;
   S.branchId = id;
-  store.set('mc_branch', id);
+  store.set('mt_branch', id);
   renderBranchChip();
   if (changed) {
     renderMenu();
@@ -1194,7 +1266,7 @@ function confetti(origin) {
   if (reduced || !origin) return;
   const r = origin.getBoundingClientRect();
   const cx = r.left + r.width / 2, cy = r.top + r.height / 3;
-  const colors = ['#ffd400', '#ffb703', '#ff7a00', '#fff6d5', '#ff4b2b'];
+  const colors = ['#ffb81c', '#e3262a', '#ffd166', '#fff4e0', '#f08b2f'];
   for (let i = 0; i < 34; i++) {
     const p = document.createElement('i');
     p.className = 'confetti';
@@ -1213,82 +1285,65 @@ function confetti(origin) {
 
 /* ════════════════════════ opening story (pinned, scroll-scrubbed) ════════════════════════
    Only transform + opacity change while scrolling, so it stays smooth on phones and iPads.
-   0.00 hero → 0.12 zoom → 0.22 stack (explode + labels) → 0.44 slam → 0.52 SMASH!
-   → 0.62 combo box rises → 0.66 burger drops in → fries / drink / dip → 0.84 lid closes → CTA */
-const ASPECT = 1568 / 1237;
-const CUTS = [
-  [[0, 33], [20, 32], [45, 30], [65, 31], [80, 35], [92, 40], [100, 42]],
-  [[0, 47], [25, 48], [45, 50], [62, 52], [75, 58], [84, 61], [92, 54], [100, 50]],
-  [[0, 64], [25, 66], [50, 69], [75, 71], [100, 68]],
-  [[0, 79], [25, 81], [50, 85], [75, 87], [100, 88]],
-];
-const L_OFF = [-0.5, -0.24, 0, 0.22, 0.46];
-const L_ROT = [-3, 2.5, -1.5, 2, -2];
-const L_MID = [0.16, 0.41, 0.58, 0.75, 0.92];
+   0.00 hero → 0.12 zoom → 0.22 gold stage, mama's recipe (4 steps) → 0.46 red stage, CRUNCH!
+   → 0.62 the meal box rises → 0.66 tenders drop in → toast / fries / drink / dip → 0.85 lid closes → CTA */
+const ASPECT = 1000 / 567; // public/img/story/tenders-*.webp
 const story = { p: 0 };
-const easeIO = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
-const easeOut = (t) => 1 - Math.pow(1 - t, 3);
-const easeIn = (t) => t * t * t;
-const easeBack = (t) => { const c = 1.4; return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2); };
+const easeIO = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+const easeOut = (x) => 1 - Math.pow(1 - x, 3);
+const easeBack = (x) => { const c = 1.4; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
 const seg = (p, a, b) => clamp((p - a) / (b - a), 0, 1);
-const mix = (a, b, t) => a + (b - a) * t;
-const mixR = (a, b, t) => ({ x: mix(a.x, b.x, t), y: mix(a.y, b.y, t), w: mix(a.w, b.w, t) });
-function clipFor(i) {
-  const top = i === 0 ? [[0, 0], [100, 0]] : CUTS[i - 1];
-  const bot = i === 4 ? [[0, 100], [100, 100]] : CUTS[i].map(([x, y]) => [x, y + 0.7]);
-  return `polygon(${[...top, ...[...bot].reverse()].map(([x, y]) => `${x}% ${y}%`).join(',')})`;
-}
+const mix = (a, b, x) => a + (b - a) * x;
+const mixR = (a, b, x) => ({ x: mix(a.x, b.x, x), y: mix(a.y, b.y, x), w: mix(a.w, b.w, x) });
 
 const BOX_RATIO = 1.55; // matches .box aspect-ratio
 function setupStory() {
   const sec = $('#top');
   const pin = $('#storyPin');
-  const sb = $('#sb');
-  const layers = $$('.sb__l', sb);
-  const shadow = $('#sbShadow');
+  const tp = $('#tp');
+  const shadow = $('#tpShadow');
   const copy = $('#storyCopy');
   const slot = $('#heroSlot');
   const decor = $('#storyDecor');
-  const yellow = $('#storyYellow');
-  const head = $('#stackHead');
-  const labels = $$('#sLabels li');
+  const gold = $('#storyGold');
+  const red = $('#storyRed');
+  const recipe = $('#recipe');
+  const recipeHead = $('.recipe__head');
+  const recipeSlot = $('#recipeSlot');
+  const steps = $$('#steps li');
   const impact = $('#impact');
-  const combo = $('#combo');
-  const comboHead = $('#comboHead');
+  const meal = $('#meal');
+  const mealHead = $('#mealHead');
   const box = $('#box');
   const boxSlot = $('#boxSlot');
   const back = $('.box__back'), front = $('.box__front'), lid = $('#boxLid');
-  const fries = $('.box__fries'), cup = $('.box__cup'), dip = $('.box__dip');
-  const cta = $('#comboCta');
+  const toastImg = $('.box__toast'), fries = $('.box__fries'), cup = $('.box__cup'), dip = $('.box__dip');
+  const cta = $('#mealCta');
   const hint = $('#storyHint');
   const nav = $('#nav');
-  layers.forEach((l, i) => { l.style.clipPath = clipFor(i); });
 
   let M = null, lastP = -1, ticking = false, active = true;
+
+  // fit a photo of ASPECT inside a box, centred
+  const fit = (r, pad = 0) => {
+    const w = Math.min(r.w * (1 - pad * 2), r.h * (1 - pad * 2) * ASPECT);
+    return { x: r.x + (r.w - w) / 2, y: r.y + (r.h - w / ASPECT) / 2, w };
+  };
 
   const measure = () => {
     const vw = pin.clientWidth, vh = pin.clientHeight;
     const pr = pin.getBoundingClientRect();
     const rel = (r) => ({ x: r.left - pr.left, y: r.top - pr.top, w: r.width, h: r.height });
     const mobile = vw < 900;
-    const rtl = html.dir === 'rtl';
     const navH = nav.offsetHeight || 64;
-    const gutter = vw < 760 ? 16 : 28;
-    const s = rel(slot.getBoundingClientRect());
-    const ins = mobile ? [0.06, 0.03, 0.1] : [0.1, 0.03, 0.12];
-    const iw = s.w * (1 - ins[1] * 2), ih = s.h * (1 - ins[0] - ins[2]);
-    const hw = Math.min(iw, ih * ASPECT);
-    const hero = { x: s.x + (s.w - hw) / 2, y: s.y + s.h * ins[0] + (ih - hw / ASPECT) / 2, w: hw };
-    const zw = Math.min(vw * (mobile ? 0.9 : 0.56), (vh - navH - 60) * 0.75 * ASPECT, 760);
+    const hero = fit(rel(slot.getBoundingClientRect()), mobile ? 0.02 : 0.04);
+    const zw = Math.min(vw * (mobile ? 0.94 : 0.62), (vh - navH - 60) * 0.8 * ASPECT, 820);
     const zoom = { x: (vw - zw) / 2, y: navH + (vh - navH - zw / ASPECT) / 2, w: zw };
-    const sw = Math.min(mobile ? vw * 0.54 : vw * 0.32, ((vh - navH - (mobile ? 150 : 190)) / 2.1) * ASPECT, 540);
-    const sx = mobile ? (rtl ? vw - gutter - sw : gutter) : (vw - sw) / 2;
-    const top = navH + (mobile ? 92 : 112);
-    const stack = { x: sx, y: top + ((vh - top) - sw / ASPECT) / 2, w: sw };
-    const iw2 = Math.min(vw * (mobile ? 0.78 : 0.4), (vh * 0.4) * ASPECT, 580);
-    const imp = { x: (vw - iw2) / 2, y: (vh - iw2 / ASPECT) / 2, w: iw2 };
-    // fit the combo box between the price heading and the buttons, whatever the screen height
-    const headBottom = comboHead.offsetTop + comboHead.offsetHeight;
+    const stack = fit(rel(recipeSlot.getBoundingClientRect()));
+    const iw = Math.min(vw * (mobile ? 0.84 : 0.46), (vh * 0.42) * ASPECT, 640);
+    const imp = { x: (vw - iw) / 2, y: (vh - iw / ASPECT) / 2, w: iw };
+    // fit the meal box between the price heading and the buttons, whatever the screen height
+    const headBottom = mealHead.offsetTop + mealHead.offsetHeight;
     const ctaTop = cta.offsetTop;
     const room = Math.max(120, ctaTop - headBottom - 40);
     const bw = Math.round(Math.min(600, vw * 0.9, room * BOX_RATIO));
@@ -1298,10 +1353,8 @@ function setupStory() {
     const b = rel(boxSlot.getBoundingClientRect());
     const inBox = { x: b.x, y: b.y, w: b.w };
     const base = Math.ceil(Math.max(hero.w, zoom.w, stack.w, imp.w, inBox.w));
-    sb.style.width = `${base}px`;
-    const lw = mobile ? Math.max(110, (rtl ? sx - gutter : vw - (sx + sw) - gutter) - 12) : clamp(vw * 0.2, 180, 280);
-    pin.style.setProperty('--lw', `${lw}px`);
-    M = { vw, vh, mobile, rtl, hero, zoom, stack, imp, inBox, base, lw };
+    tp.style.width = `${base}px`;
+    M = { vw, vh, mobile, hero, zoom, stack, imp, inBox, base };
   };
 
   const set = (el, prop, val) => { if (el._v?.[prop] !== val) { (el._v ||= {})[prop] = val; el.style[prop] = val; } };
@@ -1315,18 +1368,19 @@ function setupStory() {
     M.done = true;
     story.p = p;
 
-    // the burger's path
+    // the tenders' path (scaled and turned around their centre)
     const tA = easeIO(seg(p, 0, 0.12)), tB = easeIO(seg(p, 0.12, 0.22));
     const tI = easeIO(seg(p, 0.46, 0.52)), tC = easeIO(seg(p, 0.66, 0.76));
     let r = mixR(M.hero, M.zoom, tA);
     r = mixR(r, M.stack, tB);
     r = mixR(r, M.imp, tI);
     r = mixR(r, M.inBox, tC);
-    const sc = r.w / M.base;
-    set(sb, 'transform', `translate3d(${r.x.toFixed(1)}px,${r.y.toFixed(1)}px,0) scale(${sc.toFixed(4)})`);
+    const crunch = seg(p, 0.505, 0.525) * (1 - seg(p, 0.53, 0.58));
+    const sc = (r.w / M.base) * (1 + 0.1 * crunch);
+    const rot = -6 * easeIO(seg(p, 0.2, 0.44)) * (1 - tI) + 4 * crunch;
     const H0 = M.base / ASPECT;
-    const explode = easeOut(seg(p, 0.2, 0.36)) * (1 - easeIn(seg(p, 0.43, 0.51)));
-    layers.forEach((l, i) => set(l, 'transform', explode > 0.001 ? `translate3d(0,${(L_OFF[i] * explode * H0).toFixed(1)}px,0) rotate(${(L_ROT[i] * explode).toFixed(2)}deg)` : 'none'));
+    const tx = r.x + r.w / 2 - M.base / 2, ty = r.y + r.w / ASPECT / 2 - H0 / 2;
+    set(tp, 'transform', `translate3d(${tx.toFixed(1)}px,${ty.toFixed(1)}px,0) rotate(${rot.toFixed(2)}deg) scale(${sc.toFixed(4)})`);
     set(shadow, 'opacity', String(Math.max(0, 1 - seg(p, 0.03, 0.14)) + 0.8 * seg(p, 0.52, 0.55) * (1 - seg(p, 0.62, 0.66))));
 
     // hero copy fades away first
@@ -1335,52 +1389,51 @@ function setupStory() {
     set(copy, 'transform', `translate3d(0,${(-50 * fade).toFixed(1)}px,0)`);
     set(copy, 'visibility', fade >= 1 ? 'hidden' : 'visible');
     set(decor, 'opacity', String(1 - seg(p, 0.03, 0.12)));
+    set(slot, 'opacity', String(1 - seg(p, 0.03, 0.12)));
     set(hint, 'opacity', String(1 - seg(p, 0, 0.03)));
 
-    // yellow stage for the stack and the SMASH
-    const y = seg(p, 0.08, 0.18) * (1 - seg(p, 0.6, 0.68));
-    set(yellow, 'opacity', y.toFixed(3));
-    nav.classList.toggle('on-yellow', y > 0.5);
+    // gold stage for the recipe, red stage for the CRUNCH
+    const g = seg(p, 0.08, 0.18) * (1 - seg(p, 0.46, 0.5));
+    set(gold, 'opacity', g.toFixed(3));
+    set(red, 'opacity', (seg(p, 0.46, 0.5) * (1 - seg(p, 0.6, 0.68))).toFixed(3));
+    nav.classList.toggle('on-gold', g > 0.5);
 
-    // the stack
-    const stackIn = seg(p, 0.18, 0.24) * (1 - seg(p, 0.41, 0.45));
-    set(head, 'opacity', stackIn.toFixed(3));
-    labels.forEach((li, i) => {
-      const t = seg(p, 0.23 + i * 0.025, 0.27 + i * 0.025) * (1 - seg(p, 0.41, 0.44));
-      const side = M.mobile ? (M.rtl ? 'l' : 'r') : (i % 2 ? 'l' : 'r');
-      if (li.dataset.side !== side) li.dataset.side = side;
-      const ay = r.y + sc * (L_MID[i] * H0 + L_OFF[i] * explode * H0);
-      const ax = side === 'r' ? r.x + r.w + 10 : r.x - 10 - M.lw;
-      set(li, 'opacity', t.toFixed(3));
-      set(li, 'transform', `translate3d(${ax.toFixed(1)}px,${(ay - 14).toFixed(1)}px,0)`);
+    // mama's recipe
+    const recipeIn = seg(p, 0.18, 0.24) * (1 - seg(p, 0.41, 0.45));
+    set(recipe, 'visibility', recipeIn > 0 ? 'visible' : 'hidden');
+    set(recipeHead, 'opacity', recipeIn.toFixed(3));
+    steps.forEach((li, i) => {
+      const s = seg(p, 0.23 + i * 0.035, 0.27 + i * 0.035) * (1 - seg(p, 0.41, 0.44));
+      set(li, 'opacity', s.toFixed(3));
+      set(li, 'transform', `translate3d(0,${((1 - s) * 18).toFixed(1)}px,0)`);
     });
 
-    // SMASH!
-    const cx = r.x + r.w / 2, cy = r.y + r.w / ASPECT / 2;
-    set(impact, 'opacity', (seg(p, 0.51, 0.525) * (1 - seg(p, 0.6, 0.64))).toFixed(3));
-    if (lastP < 0.52 && p >= 0.52) {
-      impact.style.setProperty('--cx', `${cx.toFixed(0)}px`);
-      impact.style.setProperty('--cy', `${cy.toFixed(0)}px`);
+    // CRUNCH!
+    set(impact, 'opacity', (seg(p, 0.505, 0.52) * (1 - seg(p, 0.6, 0.64))).toFixed(3));
+    if (lastP < 0.515 && p >= 0.515) {
+      impact.style.setProperty('--cx', `${(r.x + r.w / 2).toFixed(0)}px`);
+      impact.style.setProperty('--cy', `${(r.y + r.w / ASPECT / 2).toFixed(0)}px`);
       impact.classList.remove('go'); void impact.offsetWidth; impact.classList.add('go');
       vibrate([20, 30, 12]);
     }
 
-    // combo box (kept hidden until its scene so it never paints or shifts while off-stage)
-    set(combo, 'visibility', p > 0.58 ? 'visible' : 'hidden');
+    // the meal box (kept hidden until its scene so it never paints or shifts while off-stage)
+    set(meal, 'visibility', p > 0.58 ? 'visible' : 'hidden');
     const riseY = ((1 - easeOut(seg(p, 0.61, 0.69))) * M.vh * 0.9).toFixed(1);
     set(back, 'transform', `translate3d(0,${riseY}px,0)`);
     set(front, 'transform', `translate3d(0,${riseY}px,0)`);
     const head2 = seg(p, 0.63, 0.69);
-    set(comboHead, 'opacity', head2.toFixed(3));
-    set(comboHead, 'transform', `translate3d(0,${((1 - head2) * 24).toFixed(1)}px,0)`);
-    const drop = (el, a, b2, rot) => {
-      const t = seg(p, a, b2);
-      set(el, 'transform', `translate3d(0,${((1 - easeBack(t)) * -M.vh).toFixed(1)}px,0) rotate(${((1 - t) * rot).toFixed(1)}deg)`);
+    set(mealHead, 'opacity', head2.toFixed(3));
+    set(mealHead, 'transform', `translate3d(0,${((1 - head2) * 24).toFixed(1)}px,0)`);
+    const drop = (el, a, b2, rot0) => {
+      const x = seg(p, a, b2);
+      set(el, 'transform', `translate3d(0,${((1 - easeBack(x)) * -M.vh).toFixed(1)}px,0) rotate(${((1 - x) * rot0).toFixed(1)}deg)`);
     };
-    drop(fries, 0.74, 0.8, -20);
-    drop(cup, 0.76, 0.82, 16);
-    drop(dip, 0.78, 0.84, -12);
-    const close = seg(p, 0.84, 0.92);
+    drop(toastImg, 0.73, 0.79, -16);
+    drop(fries, 0.75, 0.81, -20);
+    drop(cup, 0.77, 0.83, 16);
+    drop(dip, 0.79, 0.85, -12);
+    const close = seg(p, 0.85, 0.92);
     set(lid, 'transform', `translate3d(0,${riseY}px,0) perspective(1400px) rotateX(${(-112 + 112 * easeIO(close)).toFixed(2)}deg)`);
     const ctaT = seg(p, 0.91, 0.95);
     set(cta, 'opacity', ctaT.toFixed(3));
@@ -1407,7 +1460,7 @@ function setupStory() {
   story.remeasure = remeasure;
   measure();
   render();
-  sb.classList.add('is-ready');
+  tp.classList.add('is-ready');
 }
 
 /* ════════════════════════ scroll-driven bits ════════════════════════ */
@@ -1466,7 +1519,7 @@ function updateDock() {
 document.addEventListener('click', (e) => {
   const open = e.target.closest('[data-open]');
   if (open) {
-    const card = open.closest('.card');
+    const card = open.closest('.card, .pick');
     openSheet(open.dataset.open, card?.querySelector('img'));
     return;
   }
@@ -1474,8 +1527,7 @@ document.addEventListener('click', (e) => {
   if (quick) {
     const item = S.items[quick.dataset.quick];
     if (!item) return;
-    const cat = S.cats[item.category_id] || {};
-    if (item.sizes.length === 1 && !cat.allows_combo && !cat.allows_addons) quickAdd(item.id, null, quick);
+    if (item.sizes.length === 1 && !optsOf(item).length) quickAdd(item.id, null, quick);
     else openSheet(item.id, quick.closest('.card')?.querySelector('img'));
     return;
   }
@@ -1497,8 +1549,8 @@ document.addEventListener('click', (e) => {
   if (mapCard && !e.target.closest('a, button')) { setMap(mapCard.dataset.map); return; }
   const ob = e.target.closest('[data-order-branch]');
   if (ob) { selectBranch(ob.dataset.orderBranch); $('#menu').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' }); return; }
-  const oc = e.target.closest('[data-open-combo]');
-  if (oc) { openSheet(oc.dataset.openCombo, $('#sb img'), { combo: true }); return; }
+  const om = e.target.closest('[data-open-meal]');
+  if (om) { openSheet(om.dataset.openMeal, $('#tpImg'), { size: om.dataset.size }); return; }
   if (e.target.closest('[data-open-cart]')) openCart();
 });
 
@@ -1527,7 +1579,7 @@ addEventListener('keydown', (e) => {
   setTimeout(() => $('#search').focus({ preventScroll: true }), reduced ? 0 : 450);
 });
 addEventListener('resize', () => { const a = $('#tabs button[aria-selected="true"]'); if (a) moveInk(a, false); }, { passive: true });
-addEventListener('storage', (e) => { if (e.key === 'mc_cart') { S.cart = store.get('mc_cart', []); renderCart(); } });
+addEventListener('storage', (e) => { if (e.key === 'mt_cart') { S.cart = store.get('mt_cart', []); renderCart(); } });
 
 // refresh open/closed labels every minute
 setInterval(() => { if (S.menu) { renderHeroMeta(); } }, 60000);

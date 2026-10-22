@@ -6,7 +6,7 @@ const OUT = process.argv[2] || 'tools/out';
     const p = await (await b.newContext({ viewport: vp, hasTouch: true })).newPage();
     p.on('pageerror', (e) => errs.push(e.message)); p.on('console', (m) => m.type() === 'error' && errs.push(m.text()));
     await p.goto(BASE + '/#menu', { waitUntil: 'networkidle' }); await p.waitForTimeout(1200);
-    const card = p.locator('.card[data-id="french-fries"]'); await card.scrollIntoViewIfNeeded(); await p.waitForTimeout(900);
+    const card = p.locator('.card[data-id="fries"]'); await card.scrollIntoViewIfNeeded(); await p.waitForTimeout(900);
     await card.locator('.card__hit').click();
     const shots = [];
     for (const ms of [120, 260, 700]) { await p.waitForTimeout(ms - (shots.length ? [120, 260, 700][shots.length - 1] : 0)); await p.screenshot({ path: `${OUT}/${n}-${ms}.png` }); shots.push(ms);

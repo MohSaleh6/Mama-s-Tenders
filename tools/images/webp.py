@@ -1,8 +1,8 @@
 # Export a transparent PNG as WebP at several widths.
 # Usage: python3 tools/images/webp.py <in.png> <out-prefix> <spec>[,<spec>...] [quality=80]
 #   spec = <width> -> <out-prefix>-<width>.webp,  or <width>:<suffix> -> <out-prefix><suffix>.webp
-#   menu photos (site expects <id>.webp + <id>-sm.webp):  webp.py cut/smash.png public/img/menu/smash 560:,220:-sm
-#   story burger (smash-640.webp + smash-1000.webp):       webp.py cut/smash-hd.png public/img/story/smash 640,1000
+#   menu photos (site expects <id>.webp + <id>-sm.webp):  webp.py cut/big-mama.png public/img/menu/big-mama 560:,220:-sm
+#   story tenders (tenders-640.webp + tenders-1000.webp):  webp.py cut/tenders-hd.png public/img/story/tenders 640,1000
 import sys
 from PIL import Image
 

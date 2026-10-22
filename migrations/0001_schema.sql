@@ -1,4 +1,4 @@
--- Meat & Cheezz — D1 schema
+-- Mama's Tenders — D1 schema
 -- Money is stored as INTEGER fils (1 JD = 1000 fils).
 
 CREATE TABLE IF NOT EXISTS categories (
@@ -8,8 +8,6 @@ CREATE TABLE IF NOT EXISTS categories (
   tagline_ar    TEXT NOT NULL DEFAULT '',
   tagline_en    TEXT NOT NULL DEFAULT '',
   sort          INTEGER NOT NULL DEFAULT 0,
-  allows_combo  INTEGER NOT NULL DEFAULT 0,
-  allows_addons INTEGER NOT NULL DEFAULT 0,
   active        INTEGER NOT NULL DEFAULT 1
 );
 
@@ -25,9 +23,10 @@ CREATE TABLE IF NOT EXISTS items (
   image       TEXT NOT NULL DEFAULT '',
   sizes       TEXT NOT NULL DEFAULT '[]',   -- JSON: [{id, ar, en, price}]
   tags        TEXT NOT NULL DEFAULT '[]',   -- JSON: ["spicy","grilled","signature","new"]
+  options     TEXT NOT NULL DEFAULT '[]',   -- JSON: ["heat","flavour","dip","upsize"]
   featured    INTEGER NOT NULL DEFAULT 0,
   sold_out    INTEGER NOT NULL DEFAULT 0,   -- sold out everywhere
-  is_addon    INTEGER NOT NULL DEFAULT 0,   -- offered as a burger add-on
+  is_dip      INTEGER NOT NULL DEFAULT 0,   -- can be picked as the dip that comes with a meal
   active      INTEGER NOT NULL DEFAULT 1,   -- hidden from the site when 0
   sort        INTEGER NOT NULL DEFAULT 0,
   updated_at  INTEGER NOT NULL DEFAULT 0

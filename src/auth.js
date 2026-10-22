@@ -1,7 +1,7 @@
 // Password login for /admin with an HMAC-signed, HttpOnly session cookie.
 import { HttpError } from './http.js';
 
-const COOKIE = 'mc_admin';
+const COOKIE = 'mt_admin';
 const SESSION_SECONDS = 7 * 24 * 3600;
 const MAX_FAILURES = 8;
 const WINDOW_SECONDS = 15 * 60;
@@ -30,7 +30,7 @@ function requirePassword(env) {
 
 async function hmacKey(env) {
   // Changing ADMIN_PASSWORD (or SESSION_SECRET) logs every session out.
-  const material = `mc-session:${requirePassword(env)}:${env.SESSION_SECRET || ''}`;
+  const material = `mt-session:${requirePassword(env)}:${env.SESSION_SECRET || ''}`;
   return crypto.subtle.importKey('raw', enc.encode(material), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign', 'verify']);
 }
 
@@ -87,7 +87,7 @@ export async function isAuthed(request, env) {
 export async function requireAdmin(request, env) {
   if (!(await isAuthed(request, env))) throw new HttpError(401, 'Not signed in');
   // CSRF guard: browsers cannot send this custom header cross-site without a CORS preflight we never allow.
-  if (request.method !== 'GET' && request.headers.get('x-mc-admin') !== '1') {
+  if (request.method !== 'GET' && request.headers.get('x-mt-admin') !== '1') {
     throw new HttpError(403, 'Missing admin header');
   }
 }

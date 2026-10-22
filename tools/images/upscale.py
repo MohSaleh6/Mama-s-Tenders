@@ -1,4 +1,4 @@
-# 4x AI upscale of one region of a (low-res) photo, e.g. a burger cut from a PDF menu page. CPU only, tiled.
+# 4x AI upscale of one region of a (low-res) photo, e.g. a sandwich cut from a menu photo. CPU only, tiled.
 # Model: Real-ESRGAN x4 ONNX from Hugging Face (GitHub release downloads are blocked in the cloud sandbox):
 #   curl -L -o tools/out/esrgan.onnx https://huggingface.co/imgdesignart/realesrgan-x4-onnx/resolve/main/onnx/model.onnx
 # Usage: python3 tools/images/upscale.py <model.onnx> <page.jpg> <out.png> <left,top,right,bottom>

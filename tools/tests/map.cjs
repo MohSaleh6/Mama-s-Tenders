@@ -10,7 +10,7 @@ const BASE = process.env.BASE || 'http://127.0.0.1:8787';
   await p.waitForTimeout(9000);
   console.log('loaded class:', await p.getAttribute('#branchMap', 'class'));
   await p.screenshot({ path: `${OUT}/map-d1.png` });
-  await p.click('.bcard[data-map="mecca"] h3');
+  await p.click('.bcard[data-map="mecca-mall"] h3');
   await p.waitForTimeout(8000);
   await p.screenshot({ path: `${OUT}/map-d2.png` });
   console.log(errs.join('\n') || 'no errors');

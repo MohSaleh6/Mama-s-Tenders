@@ -1,4 +1,4 @@
-// Meat & Cheezz — Cloudflare Worker
+// Mama's Tenders — Cloudflare Worker
 // Serves the JSON API (+ uploaded photos). Everything else is static assets from /public.
 import { HttpError, json, errorResponse, readJson, str, int, bool, slug, parseJsonColumn } from './http.js';
 import { createSession, sessionCookie, clearCookie, isAuthed, requireAdmin, checkPassword } from './auth.js';
@@ -6,6 +6,11 @@ import { ensureSeeded } from './seed.js';
 
 const AMMAN_OFFSET = 3 * 3600; // Jordan is UTC+3 all year
 const TAGS = ['spicy', 'grilled', 'signature', 'new'];
+// Item options (see data/menu.mjs): heat = spicy/mild, flavour = wings & bites coating,
+// dip = the dip that comes with a meal, upsize = bigger meal for settings.combo_price.
+const OPTIONS = ['heat', 'flavour', 'dip', 'upsize'];
+const HEATS = ['spicy', 'mild'];
+const FLAVOURS = ['original', 'bbq', 'dynamite', 'buffalo', 'honey-mustard', 'sweet-chili'];
 const SETTINGS_KEYS = {
   combo_price: 'int',
   google_rating: 'text',
@@ -114,6 +119,7 @@ function rowToItem(r) {
     ...r,
     sizes: parseJsonColumn(r.sizes, []),
     tags: parseJsonColumn(r.tags, []),
+    options: parseJsonColumn(r.options, []),
   };
 }
 
@@ -195,6 +201,7 @@ async function saveItem(env, id, body) {
   }
 
   const tags = Array.isArray(body.tags) ? body.tags.filter((t) => TAGS.includes(t)) : [];
+  const options = Array.isArray(body.options) ? body.options.filter((o) => OPTIONS.includes(o)) : [];
   const row = {
     id: itemId,
     category_id,
@@ -207,9 +214,10 @@ async function saveItem(env, id, body) {
     image: validateImagePath(body.image),
     sizes: JSON.stringify(validateSizes(body.sizes)),
     tags: JSON.stringify([...new Set(tags)]),
+    options: JSON.stringify([...new Set(options)]),
     featured: bool(body.featured),
     sold_out: bool(body.sold_out),
-    is_addon: bool(body.is_addon),
+    is_dip: bool(body.is_dip),
     active: body.active === undefined ? 1 : bool(body.active),
     sort: int(body.sort, { min: 0, max: 100000, field: 'sort', fallback: 0 }),
     updated_at: Math.floor(Date.now() / 1000),
@@ -285,8 +293,6 @@ async function saveCategory(env, id, body) {
     tagline_ar: str(body.tagline_ar, { max: 120, field: 'Arabic tagline' }),
     tagline_en: str(body.tagline_en, { max: 120, field: 'English tagline' }),
     sort: int(body.sort, { min: 0, max: 100000, field: 'sort', fallback: 0 }),
-    allows_combo: bool(body.allows_combo),
-    allows_addons: bool(body.allows_addons),
     active: body.active === undefined ? 1 : bool(body.active),
   };
   const cols = Object.keys(row);
@@ -312,7 +318,7 @@ async function saveBranch(env, id, body) {
   const exists = await env.DB.prepare('SELECT id FROM branches WHERE id = ?').bind(id).first();
   if (!exists) throw new HttpError(404, 'Branch not found');
   const whatsapp = str(body.whatsapp, { max: 20, required: true, field: 'WhatsApp number' }).replace(/\D/g, '');
-  if (whatsapp.length < 8 || whatsapp.length > 15) throw new HttpError(400, 'WhatsApp number must be in international format, e.g. 962788600111');
+  if (whatsapp.length < 8 || whatsapp.length > 15) throw new HttpError(400, 'WhatsApp number must be in international format, e.g. 962775866660');
   const maps = str(body.maps_url, { max: 500, field: 'Maps link' });
   if (maps && !/^https:\/\//.test(maps)) throw new HttpError(400, 'Maps link must start with https://');
   const open = str(body.open_time, { max: 5, required: true, field: 'Opening time' });
@@ -389,7 +395,7 @@ async function serveImage(env, id) {
 
 // ─── Orders ─────────────────────────────────────────────────────────
 
-const ORDER_ID_RE = /^MC-[A-Z0-9]{4,8}$/;
+const ORDER_ID_RE = /^MT-[A-Z0-9]{4,8}$/;
 
 // Light per-IP throttle so the public order log can't be flooded (reuses the attempts table).
 async function throttleOrders(request, env) {
@@ -418,8 +424,7 @@ async function createOrder(request, env) {
   const all = await loadAll(env);
   if (!all.branches.some((b) => b.id === branch_id)) throw new HttpError(400, 'Unknown branch');
   const items = Object.fromEntries(all.items.filter((i) => i.active).map((i) => [i.id, i]));
-  const cats = Object.fromEntries(all.categories.map((c) => [c.id, c]));
-  const comboPrice = Number(all.settings.combo_price || 0);
+  const upsizePrice = Number(all.settings.combo_price || 0);
 
   let total = 0;
   const priced = lines.map((l) => {
@@ -427,13 +432,12 @@ async function createOrder(request, env) {
     if (!item) throw new HttpError(409, `Item no longer available: ${String(l.item_id).slice(0, 40)}`);
     const size = item.sizes.find((s) => s.id === l.size_id) || item.sizes[0];
     const qty = int(l.qty, { min: 1, max: 50, field: 'qty' });
-    const cat = cats[item.category_id] || {};
-    const combo = Boolean(l.combo) && Boolean(cat.allows_combo);
-    const addonIds = Array.isArray(l.addons) ? l.addons.slice(0, 10) : [];
-    const addons = cat.allows_addons
-      ? addonIds.map((a) => items[a]).filter((a) => a && a.is_addon && a.id !== item.id)
-      : [];
-    const unit = size.price + (combo ? comboPrice : 0) + addons.reduce((s, a) => s + (a.sizes[0]?.price || 0), 0);
+    const opts = item.options || [];
+    const upsize = Boolean(l.upsize) && opts.includes('upsize');
+    const heat = opts.includes('heat') ? (HEATS.includes(l.heat) ? l.heat : HEATS[0]) : '';
+    const flavour = opts.includes('flavour') ? (FLAVOURS.includes(l.flavour) ? l.flavour : FLAVOURS[0]) : '';
+    const dipItem = opts.includes('dip') ? items[l.dip] : null;
+    const unit = size.price + (upsize ? upsizePrice : 0);
     total += unit * qty;
     return {
       item_id: item.id,
@@ -441,8 +445,10 @@ async function createOrder(request, env) {
       name_en: item.name_en,
       size: size.en,
       qty,
-      combo,
-      addons: addons.map((a) => a.name_en),
+      upsize,
+      heat,
+      flavour,
+      dip: dipItem?.is_dip ? dipItem.name_en : '',
       note: str(l.note, { max: 140, field: 'note' }),
       unit,
     };

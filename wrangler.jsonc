@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "meatandcheezz",
+  "name": "mamastenders",
   "main": "src/index.js",
   "compatibility_date": "2025-09-01",
   "assets": {
@@ -13,8 +13,8 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "meatandcheezz",
-      "database_id": "11d82cb9-90ed-4e24-a7c6-dce43887184e",
+      "database_name": "mamastenders",
+      "database_id": "4b5a6ffa-3b6c-461a-8c20-2bd7ef59032c",
       "migrations_dir": "migrations"
     }
   ],
