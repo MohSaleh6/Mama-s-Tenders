@@ -1,6 +1,6 @@
 // Mama's Tenders — customer site
 // Vanilla JS, no dependencies. Arabic-first, RTL-aware.
-import { DICT, QUOTES, FLAVOURS, DIP_COLORS } from './i18n.js?v=562dd9a3d1';
+import { DICT, QUOTES, FLAVOURS, DIP_COLORS } from './i18n.js?v=efa54fe92b';
 
 /* ════════════════════════ utilities ════════════════════════ */
 const $ = (s, r = document) => r.querySelector(s);

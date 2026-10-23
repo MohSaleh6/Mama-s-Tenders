@@ -11,7 +11,7 @@ A fast, animated, Arabic-first ordering website for **Mama's Tenders** (Amman: M
 | Part | What | Where |
 |---|---|---|
 | Data model | categories, items with per-size prices (in fils, 1 JD = 1000), tags, **order options per item** (spicy/mild, flavour, dip, upsize), dips, per-branch sold-out, branches, settings, uploaded photos, order log | `migrations/0001_schema.sql` |
-| Menu | prices from the in-store counter menu (2026), descriptions from the restaurant's Talabat listing, one source file that generates the seed SQL and a static fallback JSON | `data/menu.mjs` → `npm run seed:build` |
+| Menu | prices from the restaurant's QR menu and counter-menu photos (never Talabat), descriptions from the restaurant's Talabat listing, one source file that generates the seed SQL and a static fallback JSON | `data/menu.mjs` → `npm run seed:build` |
 | API (Worker) | public menu, order logging with server-side re-pricing, admin CRUD, photo upload, stats | `src/` |
 | Customer site | Arabic RTL first, one-tap English, animated, mobile-first, WhatsApp checkout | `public/index.html`, `public/css`, `public/js` |
 | Dashboard | login, stats, menu editor, sold-out per item and per branch, photos, branches, settings | `public/admin/` |
@@ -35,7 +35,7 @@ A fast, animated, Arabic-first ordering website for **Mama's Tenders** (Amman: M
 
 **Menu & ordering**
 - **Mama's picks** rail (items marked ⭐ in the dashboard), then a sticky category bar with a sliding indicator, scroll-spy and Arabic-aware search (`/` on desktop).
-- 9 sections: Tenders, Sandwiches (all meals with fries & a drink), Wings, Bites, Kids Meals, Sides, Dips (colour swatches like the sauce dots on the counter menu), Cookies, Drinks.
+- 10 sections: Tenders, Sandwiches (all meals with fries & a drink), Wings, Bites, Kids Meals, Sides, Offers (Share Box, Snack Box), Dips (colour swatches like the sauce dots on the counter menu), Cookies, Drinks.
 - **Item sheet** (bottom sheet on mobile, drag down to dismiss):
   - pieces picker with a row of tenders that fills up as you pick more,
   - **Spicy / Mild** toggle (flames appear on the photo when it's spicy),
@@ -143,8 +143,8 @@ npm run dev                           # http://localhost:8787  and  /admin
 ## 6. Confirm with the owner
 
 - **WhatsApp**: all four branches send orders to **077 586 6660** (`962775866660`). Calls go to the number on Google Maps, **06 566 6660**. Give each branch its own number in Branches if needed.
-- **Delivery**: set to *pickup on WhatsApp, delivery on Talabat* for every branch. Switch a branch's "Delivery available" on to take delivery orders on WhatsApp too.
-- **Opening hours** (Google Maps, 22 Oct 2026): 7th Circle 11 AM–2 AM; Mecca Mall 11 AM–12 AM; Khalda 11 AM–1 AM (Thu–Fri until 2 AM — the site uses the 1 AM closing every day). **Marj Al Hamam has no hours on Google**, so it is set to 11 AM–1 AM; please confirm.
-- **Prices**: only from the menu photos (counter menu, menu boards, specialty-sauce sign; "all prices are inclusive") — never from Talabat. Sandwich prices are the meal prices (fries + drink), "Upsize your meal" is +1 JD. Sweet Heat Almond Bites: the wall board shows one price (5.50 with fries & drink), so it is a single meal with no piece count. Not on the counter menu and so not included: Truffle Chicken, The Square, Snack Box, Share Box (add them in the dashboard with in-store prices).
+- **Delivery**: set to *pickup on WhatsApp; delivery on Talabat, Careem or the delivery line 06 566 6660* for every branch. Switch a branch's "Delivery available" on to take delivery orders on WhatsApp too.
+- **Opening hours** (Google Maps, 22 Oct 2026): 7th Circle 11 AM–2 AM; Mecca Mall 11 AM–12 AM; Khalda 11 AM–1 AM (Thu–Fri until 2 AM — the site uses the 1 AM closing every day). Marj Al Hamam has no hours on Google, so it uses the QR menu's hours (11 AM–2 AM daily).
+- **Prices**: from the restaurant's own menu photos only, never from Talabat. Main source: the QR menu (menu.qrtoco.com screenshots, Oct 2026), the newest prices. Dips (0.35 / 3 for 1.00), water (0.45), juice (0.65), specialty sauces (1.00) and "Upsize your meal" (+1 JD) are not on those screenshots, so they come from the counter-menu photo. Sandwich prices are meals with fries & a drink. The Share Box asks for the 3 sandwiches in the item note.
 - **Photos**: product photos from the restaurant's Talabat listing with backgrounds removed; storefront photos from each branch's Google Maps gallery (7th Circle uses an interior shot). Upload originals per item from the dashboard for even sharper images.
 - **Ratings**: Marj Al Hamam 4.9 (2,859), 7th Circle 4.8 (4,371), Mecca Mall 4.9 (2,719), Khalda 4.9 (3,056) — editable.

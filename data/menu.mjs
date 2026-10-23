@@ -1,5 +1,6 @@
 // Single source of truth for the seed menu.
-// Prices: the in-store counter menu (Marj Al Hamam, 2026), all prices include sales tax.
+// Prices: the restaurant's QR menu (menu.qrtoco.com, Oct 2026 screenshots); dips, water, juice and the
+// +1 JD upsize from the in-store counter menu photo. Never Talabat prices.
 // Descriptions: the restaurant's own Talabat listing (descriptions only — no Talabat prices).
 // Prices are stored in fils (1 JD = 1000 fils) to avoid floating point errors.
 //
@@ -61,6 +62,13 @@ export const categories = [
     tagline_en: 'Extra crunch for the table',
   },
   {
+    id: 'offers',
+    name_ar: 'عروض',
+    name_en: 'Offers',
+    tagline_ar: 'للمشاركة مع الشلّة',
+    tagline_en: 'Made for sharing',
+  },
+  {
     id: 'dips',
     name_ar: 'صوصات',
     name_en: 'Dips',
@@ -94,20 +102,20 @@ export const items = [
     id: 'tenders-meal', category_id: 'tenders', image: '/img/menu/tenders-meal.webp',
     name_ar: 'وجبة تندرز', name_en: 'Tenders Meal',
     desc_ar: `تندرز مقرمشة ${MEAL_AR.replace('تقدّم', 'تُقدّم')}`, desc_en: `Crispy tenders. ${MEAL_EN}`,
-    sizes: pcs([[3, 4.5], [4, 5.5], [5, 6.25]]), options: ['heat', 'dip', 'upsize'], tags: ['signature'], featured: 1,
+    sizes: pcs([[3, 4.75], [4, 5.75], [5, 6.5]]), options: ['heat', 'dip', 'upsize'], tags: ['signature'], featured: 1,
   },
   {
     id: 'family-tenders', category_id: 'tenders', image: '/img/menu/family-tenders.webp',
     name_ar: 'وجبة تندرز عائلية', name_en: 'Family Tenders Meal',
     desc_ar: `للعيلة كلها. ${MEAL_AR}`, desc_en: `For the whole family. ${MEAL_EN}`,
     note_ar: 'بتكفي ٤-٥ أشخاص', note_en: 'Feeds 4–5',
-    sizes: pcs([[15, 17.5], [20, 22.5]]), options: ['heat', 'dip'], tags: [],
+    sizes: pcs([[15, 18.5], [20, 23.5]]), options: ['heat', 'dip'], tags: [],
   },
   {
     id: 'tenders-solo', category_id: 'tenders', image: '/img/menu/tenders-solo.webp',
     name_ar: 'تندرز سولو', name_en: 'Tenders Solo',
     desc_ar: '٣ قطع تندرز مقرمشة مع خبز بالثوم وصوص', desc_en: '3 crispy tenders with garlic toast and a dip',
-    sizes: pcs([[3, 3.0]]), options: ['heat', 'dip'], tags: [],
+    sizes: pcs([[3, 3.15]]), options: ['heat', 'dip'], tags: [],
   },
 
   // ─── Sandwiches (meals) ───────────────────────────────────────────
@@ -116,7 +124,7 @@ export const items = [
     name_ar: 'بيج ماما', name_en: 'Big Mama',
     desc_ar: SAND_AR('خبز محمّص بالثوم، صدر دجاج مقرمش، خس، شرائح لحم بقري، صوص باربيكيو، جبنة تشيدر ذايبة ومايونيز'),
     desc_en: SAND_EN('Garlic toast, crunchy chicken breast, lettuce, beef strips, BBQ sauce, melted cheddar and mayo'),
-    sizes: one(6.5, 'وجبة', 'Meal'), options: ['heat', 'upsize'], tags: ['signature'], featured: 1,
+    sizes: one(6.85, 'وجبة', 'Meal'), options: ['heat', 'upsize'], tags: ['signature'], featured: 1,
   },
   {
     id: 'cheze', category_id: 'sandwiches', image: '/img/menu/cheze.webp',
@@ -124,56 +132,71 @@ export const items = [
     desc_ar: SAND_AR('خبز بريوش، صدر دجاج مقرمش، خس، كرات جبنة بالهالابينو، جبنة تشيدر وصوص خاص'),
     desc_en: SAND_EN('Brioche bun, crunchy chicken breast, lettuce, jalapeño cheese balls, cheddar, special sauce'),
     note_ar: 'بيجي حار بس', note_en: 'Spicy only',
-    sizes: one(6.5, 'وجبة', 'Meal'), options: ['upsize'], tags: ['spicy'], featured: 1,
+    sizes: one(6.85, 'وجبة', 'Meal'), options: ['upsize'], tags: ['spicy'], featured: 1,
   },
   {
     id: 'nano', category_id: 'sandwiches', image: '/img/menu/nano.webp',
     name_ar: 'نانو تشكن', name_en: 'Nano Chicken',
     desc_ar: SAND_AR('خبز نان هندي، صدر دجاج مقرمش، خس، بندورة، بصل أحمر، جبنة تشيدر وصوص خاص'),
     desc_en: SAND_EN('Indian naan, crunchy chicken breast, lettuce, tomato, red onion, cheddar, special sauce'),
-    sizes: one(6.5, 'وجبة', 'Meal'), options: ['heat', 'upsize'], tags: ['signature'], featured: 1,
+    sizes: one(6.85, 'وجبة', 'Meal'), options: ['heat', 'upsize'], tags: ['signature'], featured: 1,
   },
   {
     id: 'ultimate', category_id: 'sandwiches', image: '/img/menu/ultimate.webp',
     name_ar: 'ألتيميت تشكن', name_en: 'Ultimate Chicken',
     desc_ar: SAND_AR('خبز بريوش، صدر دجاج مقرمش، خس، بندورة، بصل أحمر، جبنة تشيدر وصوص خاص'),
     desc_en: SAND_EN('Brioche bun, crunchy chicken breast, lettuce, tomato, red onion, cheddar, special sauce'),
-    sizes: one(6.0, 'وجبة', 'Meal'), options: ['heat', 'upsize'], tags: [],
+    sizes: one(6.25, 'وجبة', 'Meal'), options: ['heat', 'upsize'], tags: [],
   },
   {
     id: 'mamas-boy', category_id: 'sandwiches', image: '/img/menu/mamas-boy.webp',
     name_ar: 'ماماز بوي', name_en: 'Mama’s Boy',
     desc_ar: SAND_AR('خبز بريوش، صدر دجاج مقرمش، خس، جبنة تشيدر، تشيبس بصل وصوص البيكلز'),
     desc_en: SAND_EN('Brioche bun, crunchy chicken breast, lettuce, cheddar, onion chips, pickles sauce'),
-    sizes: one(5.75, 'وجبة', 'Meal'), options: ['heat', 'upsize'], tags: [],
+    sizes: one(5.95, 'وجبة', 'Meal'), options: ['heat', 'upsize'], tags: [],
   },
   {
     id: 'supreme', category_id: 'sandwiches', image: '/img/menu/supreme.webp',
     name_ar: 'سوبريم تشكن', name_en: 'Supreme Chicken',
     desc_ar: SAND_AR('خبز بريوش، صدر دجاج مقرمش، خس، بندورة، جبنة تشيدر وصوص خاص'),
     desc_en: SAND_EN('Brioche bun, crunchy chicken breast, lettuce, tomato, cheddar, special sauce'),
-    sizes: one(5.75, 'وجبة', 'Meal'), options: ['heat', 'upsize'], tags: [],
+    sizes: one(5.95, 'وجبة', 'Meal'), options: ['heat', 'upsize'], tags: [],
   },
   {
     id: 'grilled', category_id: 'sandwiches', image: '/img/menu/grilled.webp',
     name_ar: 'جريلد تشكن', name_en: 'Grilled Chicken',
     desc_ar: SAND_AR('خبز بريوش، صدر دجاج مشوي، خس لولو روسو، بندورة، جبنة تشيدر، مخلل وصوص خاص'),
     desc_en: SAND_EN('Brioche bun, grilled chicken breast, lollo rosso, tomato, cheddar, pickles, special sauce'),
-    sizes: one(5.75, 'وجبة', 'Meal'), options: ['heat', 'upsize'], tags: ['grilled'],
+    sizes: one(5.95, 'وجبة', 'Meal'), options: ['heat', 'upsize'], tags: ['grilled'],
   },
   {
     id: 'classic', category_id: 'sandwiches', image: '/img/menu/classic.webp',
     name_ar: 'كلاسيك تشكن', name_en: 'Classic Chicken',
     desc_ar: SAND_AR('خبز بريوش، صدر دجاج مقرمش، خس، جبنة تشيدر وصوص ماما'),
     desc_en: SAND_EN('Brioche bun, crunchy chicken breast, lettuce, cheddar, Mama’s sauce'),
-    sizes: one(5.25, 'وجبة', 'Meal'), options: ['heat', 'upsize'], tags: [],
+    sizes: one(5.5, 'وجبة', 'Meal'), options: ['heat', 'upsize'], tags: [],
   },
   {
     id: 'rocket', category_id: 'sandwiches', image: '/img/menu/rocket.webp',
     name_ar: 'روكيت', name_en: 'Rocket',
     desc_ar: SAND_AR('خبز تورتيلا، قطعتين تندرز مقرمشة، خس، بندورة، بصل أحمر، مكس جبنة وصوص خاص'),
     desc_en: SAND_EN('Tortilla wrap, two crunchy tenders, lettuce, tomato, red onion, mixed cheese, special sauce'),
-    sizes: one(4.75, 'وجبة', 'Meal'), options: ['heat', 'upsize'], tags: [],
+    sizes: one(4.95, 'وجبة', 'Meal'), options: ['heat', 'upsize'], tags: [],
+  },
+  {
+    id: 'double-spicy-rocket', category_id: 'sandwiches', image: '/img/menu/rocket.webp',
+    name_ar: 'دبل سبايسي روكيت', name_en: 'Double Spicy Rocket',
+    desc_ar: SAND_AR('خبز تورتيلا، قطعتين تندرز حارة مقرمشة، خس، بندورة، بصل أحمر، مكس جبنة وصوص خاص'),
+    desc_en: SAND_EN('Tortilla wrap, two spicy crunchy tenders, lettuce, tomato, red onion, mixed cheese, special sauce'),
+    note_ar: 'بيجي حار بس', note_en: 'Spicy only',
+    sizes: one(4.95, 'وجبة', 'Meal'), options: ['upsize'], tags: ['spicy'],
+  },
+  {
+    id: 'the-square', category_id: 'sandwiches', image: '/img/menu/the-square.webp',
+    name_ar: 'ذا سكوير', name_en: 'The Square',
+    desc_ar: SAND_AR('خبز بطاطا مربّع، صوص بيكانتي، خس، بندورة، شيدر أبيض وهالابينو مقلي'),
+    desc_en: SAND_EN('Square potato bun, picante sauce, lettuce, tomato, white cheddar, fried jalapeños'),
+    sizes: one(5.95, 'وجبة', 'Meal'), options: ['upsize'], tags: ['spicy', 'new'],
   },
 
   // ─── Wings ────────────────────────────────────────────────────────
@@ -181,19 +204,19 @@ export const items = [
     id: 'wings-meal', category_id: 'wings', image: '/img/menu/wings-meal.webp',
     name_ar: 'وجبة وينجز', name_en: 'Wings Meal',
     desc_ar: 'أجنحة دجاج مقرمشة بالنكهة اللي بتختارها، مع بطاطا كرنكل ومشروب', desc_en: 'Crispy bone-in wings in your flavour, with crinkle fries and a drink',
-    sizes: pcs([[8, 5.5], [12, 6.95]]), options: ['flavour', 'upsize'], tags: ['signature'], featured: 1,
+    sizes: pcs([[8, 5.8], [12, 7.3]]), options: ['flavour', 'upsize'], tags: ['signature'], featured: 1,
   },
   {
     id: 'wings-family', category_id: 'wings', image: '/img/menu/wings-family.webp',
     name_ar: 'وجبة وينجز عائلية', name_en: 'Family Wings Meal',
     desc_ar: 'أجنحة دجاج مقرمشة بالنكهة اللي بتختارها، مع بطاطا كرنكل ومشروب', desc_en: 'Crispy bone-in wings in your flavour, with crinkle fries and drinks',
-    sizes: pcs([[24, 12.75], [40, 20.0]]), options: ['flavour'], tags: [],
+    sizes: pcs([[24, 13.5], [40, 21.0]]), options: ['flavour'], tags: [],
   },
   {
     id: 'wings-solo', category_id: 'wings', image: '/img/menu/wings-solo.webp',
     name_ar: 'وينجز سولو', name_en: 'Wings Solo',
     desc_ar: 'أجنحة دجاج مقرمشة بالنكهة اللي بتختارها', desc_en: 'Crispy bone-in wings in your flavour',
-    sizes: pcs([[4, 2.5], [8, 4.55]]), options: ['flavour'], tags: [],
+    sizes: pcs([[4, 2.65], [8, 4.8]]), options: ['flavour'], tags: [],
   },
 
   // ─── Bites ────────────────────────────────────────────────────────
@@ -201,19 +224,22 @@ export const items = [
     id: 'bites-meal', category_id: 'bites', image: '/img/menu/bites-meal.webp',
     name_ar: 'وجبة بايتس', name_en: 'Bites Meal',
     desc_ar: 'قطع دجاج مقرمشة بدون عظم بالنكهة اللي بتختارها، مع بطاطا كرنكل ومشروب', desc_en: 'Boneless crispy bites in your flavour, with crinkle fries and a drink',
-    sizes: pcs([[12, 5.75], [24, 10.0]]), options: ['flavour', 'upsize'], tags: [],
+    sizes: pcs([[12, 5.95], [24, 10.5]]), options: ['flavour', 'upsize'], tags: [],
   },
   {
     id: 'bites-solo', category_id: 'bites', image: '/img/menu/bites-meal.webp',
     name_ar: 'بايتس سولو', name_en: 'Bites Solo',
     desc_ar: 'قطع دجاج مقرمشة بدون عظم بالنكهة اللي بتختارها', desc_en: 'Boneless crispy bites in your flavour',
-    sizes: pcs([[6, 3.0], [12, 5.0]]), options: ['flavour'], tags: [],
+    sizes: pcs([[6, 3.15], [12, 5.25]]), options: ['flavour'], tags: [],
   },
   {
     id: 'almond-bites', category_id: 'bites', image: '/img/menu/almond-bites.webp',
     name_ar: 'بايتس سويت هيت باللوز', name_en: 'Sweet Heat Almond Bites',
-    desc_ar: 'بايتس مقرمشة بصوص حلو وحار ولوز، مع بطاطا ومشروب', desc_en: 'Crispy bites glazed sweet & hot, with almonds, served with fries and a drink',
-    sizes: one(5.5, 'وجبة', 'Meal'),
+    desc_ar: 'بايتس مقرمشة بصوص حلو وحار ولوز', desc_en: 'Crispy bites glazed sweet & hot, with almonds',
+    sizes: [
+      { id: 'solo-6', ar: '6 قطع سولو', en: '6 pcs solo', price: jd(3.15) },
+      { id: 'meal-12', ar: 'وجبة 12 قطعة', en: '12 pcs meal', price: jd(5.8) },
+    ],
     tags: ['new', 'spicy'],
   },
 
@@ -221,14 +247,14 @@ export const items = [
   {
     id: 'kids-crunch', category_id: 'kids', image: '/img/menu/kids-crunch.webp',
     name_ar: 'كرنش تشكن', name_en: 'Crunch Chicken',
-    desc_ar: 'برغر دجاج صغير مع بطاطا وسط، مشروب صغير وكوكيز', desc_en: 'Little chicken burger with medium fries, a small drink and a cookie',
-    sizes: one(3.5, 'وجبة', 'Meal'), tags: [],
+    desc_ar: 'برغر دجاج صغير مع بطاطا وعصير', desc_en: 'Little chicken burger with fries and a juice',
+    sizes: one(3.7, 'وجبة', 'Meal'), tags: [],
   },
   {
     id: 'kids-nuggets', category_id: 'kids', image: '/img/menu/kids-nuggets.webp',
     name_ar: 'ناجتس ٥ قطع', name_en: 'Nuggets 5 pcs',
-    desc_ar: '٥ قطع ناجتس مع بطاطا وسط، مشروب صغير وكوكيز', desc_en: '5 nuggets with medium fries, a small drink and a cookie',
-    sizes: one(3.5, 'وجبة', 'Meal'), tags: [],
+    desc_ar: '٥ قطع ناجتس مع بطاطا وعصير', desc_en: '5 nuggets with fries and a juice',
+    sizes: one(3.7, 'وجبة', 'Meal'), tags: [],
   },
 
   // ─── Sides ────────────────────────────────────────────────────────
@@ -236,25 +262,25 @@ export const items = [
     id: 'fries', category_id: 'sides', image: '/img/menu/fries.webp',
     name_ar: 'بطاطا كرنكل', name_en: 'Crinkle Fries',
     desc_ar: 'بطاطا متعرّجة مقرمشة ومتبّلة', desc_en: 'Crispy, seasoned crinkle-cut fries',
-    sizes: [{ id: 'm', ar: 'وسط', en: 'Medium', price: jd(1.25) }, { id: 'l', ar: 'كبير', en: 'Large', price: jd(1.75) }], tags: ['signature'],
+    sizes: [{ id: 'm', ar: 'وسط', en: 'Medium', price: jd(1.3) }, { id: 'l', ar: 'كبير', en: 'Large', price: jd(1.85) }], tags: ['signature'],
   },
   {
     id: 'cheese-balls', category_id: 'sides', image: '/img/menu/cheese-balls.webp',
     name_ar: 'كرات الجبنة الحارة', name_en: 'Jalapeño Cheese Balls',
     desc_ar: 'كرات ذهبية محشية جبنة ذايبة وهالابينو', desc_en: 'Golden balls filled with melted cheese and jalapeño',
-    sizes: pcs([[3, 1.5], [6, 2.5]]), tags: ['spicy'],
+    sizes: pcs([[3, 1.6], [6, 2.65]]), tags: ['spicy'],
   },
   {
     id: 'mozzarella', category_id: 'sides', image: '/img/menu/mozzarella.webp',
     name_ar: 'أصابع موزاريلا', name_en: 'Mozzarella Sticks',
     desc_ar: 'مقرمشة من برّا وجبنة بتمطّ من جوّا', desc_en: 'Crunchy outside, stretchy cheese inside',
-    sizes: pcs([[3, 2.0], [6, 3.5]]), tags: [],
+    sizes: pcs([[3, 2.15], [6, 3.7]]), tags: [],
   },
   {
     id: 'onion-rings', category_id: 'sides', image: '/img/menu/onion-rings.webp',
     name_ar: 'حلقات البصل', name_en: 'Onion Rings',
     desc_ar: 'حلقات بصل بعجينة مقرمشة', desc_en: 'Onion rings in a crispy batter',
-    sizes: pcs([[6, 1.5], [12, 2.5]]), tags: [],
+    sizes: pcs([[6, 1.6], [12, 2.65]]), tags: [],
   },
   {
     id: 'garlic-toast', category_id: 'sides', image: '/img/menu/garlic-toast.webp',
@@ -266,7 +292,22 @@ export const items = [
     id: 'coleslaw', category_id: 'sides', image: '/img/menu/coleslaw.webp',
     name_ar: 'كولسلو', name_en: 'Coleslaw',
     desc_ar: 'ملفوف وجزر طازة بصوص كريمي خفيف', desc_en: 'Fresh cabbage and carrot in a light creamy dressing',
-    sizes: [{ id: '1pc', ar: 'علبة', en: '1 cup', price: jd(0.55) }, { id: '2pc', ar: 'علبتين', en: '2 cups', price: jd(1.0) }], tags: [],
+    sizes: [{ id: '1pc', ar: 'علبة', en: '1 cup', price: jd(0.6) }, { id: '2pc', ar: 'علبتين', en: '2 cups', price: jd(1.0) }], tags: [],
+  },
+
+  // ─── Offers ───────────────────────────────────────────────────────
+  {
+    id: 'share-box', category_id: 'offers', image: '/img/menu/share-box.webp',
+    name_ar: 'شير بوكس', name_en: 'Share Box',
+    desc_ar: '٣ ساندويشات على اختيارك (سوبريم، كلاسيك أو نانو) + ١٢ قطعة بايتس + بطاطا مرتين', desc_en: 'Any 3 sandwiches (Supreme, Classic or Nano) + 12 bites + two fries',
+    note_ar: 'اكتب الساندويشات بالملاحظة', note_en: 'Write your sandwiches in the note',
+    sizes: one(15.99, 'بوكس', 'Box'), options: ['heat'], tags: ['new'], featured: 1,
+  },
+  {
+    id: 'snack-box', category_id: 'offers', image: '/img/menu/snack-box.webp',
+    name_ar: 'سناك بوكس', name_en: 'Snack Box',
+    desc_ar: '٣ أصابع موزاريلا، ٣ كرات جبنة حارة و٣ حلقات بصل', desc_en: '3 mozzarella sticks, 3 jalapeño cheese balls, 3 onion rings',
+    sizes: one(3.5, 'بوكس', 'Box'), tags: [],
   },
 
   // ─── Dips (is_dip: can be picked as the dip that comes with a meal) ──
@@ -305,8 +346,8 @@ export const items = [
     name_ar: 'كوكيز ماما', name_en: 'Mama’s Cookies',
     desc_ar: 'كوكيز طرية مخبوزة طازة', desc_en: 'Soft, freshly baked cookies',
     sizes: [
-      { id: 'chunk', ar: 'شوكولاتة تشانك', en: 'Chocolate chunk', price: jd(1.0) },
-      { id: 'double', ar: 'دبل شوكولاتة', en: 'Double chocolate', price: jd(1.0) },
+      { id: 'chunk', ar: '2 تشانك شوكولاتة', en: '2 chocolate chunk', price: jd(1.6) },
+      { id: 'double', ar: '2 دبل شوكولاتة', en: '2 double chocolate', price: jd(1.6) },
     ],
     tags: [],
   },
@@ -316,7 +357,7 @@ export const items = [
     id: 'soft-drink', category_id: 'drinks', image: '',
     name_ar: 'مشروب غازي', name_en: 'Soft Drink',
     desc_ar: 'اكتب النوع بالملاحظات', desc_en: 'Tell us the flavour in the notes',
-    sizes: [{ id: '250ml', ar: '٢٥٠ مل', en: '250 ml', price: jd(0.5) }, { id: '1l', ar: '١ لتر', en: '1 L', price: jd(1.0) }], tags: [],
+    sizes: [{ id: '250ml', ar: '٢٥٠ مل', en: '250 ml', price: jd(0.6) }, { id: '1l', ar: '١ لتر', en: '1 L', price: jd(1.0) }], tags: [],
   },
   {
     id: 'juice', category_id: 'drinks', image: '',
@@ -343,7 +384,7 @@ export const branches = [
     phone: PHONE, whatsapp: WA,
     maps_url: maps("Mama's Tenders Marj Al Hamam"),
     rating: 4.9, reviews: 2859,
-    open_time: '11:00', close_time: '01:00',
+    open_time: '11:00', close_time: '02:00',
     delivery: 0, accepting: 1, sort: 1,
   },
   {
@@ -382,8 +423,8 @@ export const settings = {
   combo_price: '1000',
   google_rating: '4.9',
   google_reviews: '13000',
-  delivery_note_ar: 'التوصيل للبيت عن طريق طلبات',
-  delivery_note_en: 'Home delivery is through Talabat',
+  delivery_note_ar: 'التوصيل للبيت عن طريق طلبات أو كريم، أو اتصل على 06 566 6660',
+  delivery_note_en: 'Home delivery through Talabat or Careem, or call 06 566 6660',
   announcement_ar: '',
   announcement_en: '',
   instagram: 'https://www.instagram.com/mamastendersjo/',
