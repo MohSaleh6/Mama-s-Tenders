@@ -5,7 +5,7 @@ import { createSession, sessionCookie, clearCookie, isAuthed, requireAdmin, chec
 import { ensureSeeded } from './seed.js';
 
 const AMMAN_OFFSET = 3 * 3600; // Jordan is UTC+3 all year
-const TAGS = ['spicy', 'grilled', 'signature', 'new'];
+const TAGS = ['spicy', 'grilled', 'signature', 'new', 'veg', 'nuts', 'special'];
 // Item options (see data/menu.mjs): heat = spicy/mild, flavour = wings & bites coating,
 // dip = the dip that comes with a meal, upsize = bigger meal for settings.combo_price.
 const OPTIONS = ['heat', 'flavour', 'dip', 'upsize'];
@@ -19,6 +19,9 @@ const SETTINGS_KEYS = {
   delivery_note_en: 'text',
   announcement_ar: 'text',
   announcement_en: 'text',
+  hours_note_ar: 'text',
+  hours_note_en: 'text',
+  halal: 'bool',
   instagram: 'url',
   tiktok: 'url',
   facebook: 'url',
@@ -36,6 +39,8 @@ export default {
         await ensureSeeded(env);
         return await api(request, env, ctx, url);
       }
+      if (url.pathname === '/robots.txt') return text(robots(url), 'text/plain');
+      if (url.pathname === '/sitemap.xml') return text(sitemap(url), 'application/xml');
       if (url.pathname.startsWith('/img/u/')) {
         await ensureSeeded(env);
         return await serveImage(env, url.pathname.slice(7));
@@ -46,6 +51,27 @@ export default {
     }
   },
 };
+
+// ─── robots.txt + sitemap.xml (absolute URLs need the live host) ────
+
+function text(body, type) {
+  return new Response(body, { headers: { 'content-type': `${type}; charset=utf-8`, 'cache-control': 'public, max-age=3600' } });
+}
+
+function robots(url) {
+  return `User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /api/\n\nSitemap: ${url.origin}/sitemap.xml\n`;
+}
+
+function sitemap(url) {
+  const day = new Date().toISOString().slice(0, 10);
+  const page = (path, alt, priority) => `  <url><loc>${url.origin}${path}</loc><lastmod>${day}</lastmod><priority>${priority}</priority>${alt}</url>`;
+  const langs = `<xhtml:link rel="alternate" hreflang="ar" href="${url.origin}/"/><xhtml:link rel="alternate" hreflang="en" href="${url.origin}/?lang=en"/>`;
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+${[page('/', langs, '1.0'), page('/?lang=en', langs, '0.9'), page('/privacy', '', '0.3'), page('/terms', '', '0.3')].join('\n')}
+</urlset>
+`;
+}
 
 // ─── Router ─────────────────────────────────────────────────────────
 
@@ -58,6 +84,7 @@ async function api(request, env, ctx, url) {
     return json(await publicMenu(env), { cache: 'public, max-age=15, stale-while-revalidate=120' });
   }
   if (pathname === '/api/orders' && method === 'POST') return createOrder(request, env);
+  if (pathname === '/api/views' && method === 'POST') return logView(request, env);
 
   if (parts[1] !== 'admin') throw new HttpError(404, 'Not found');
 
@@ -324,6 +351,8 @@ async function saveBranch(env, id, body) {
   const open = str(body.open_time, { max: 5, required: true, field: 'Opening time' });
   const close = str(body.close_time, { max: 5, required: true, field: 'Closing time' });
   if (!TIME_RE.test(open) || !TIME_RE.test(close)) throw new HttpError(400, 'Times must look like 12:00');
+  const placeId = str(body.place_id, { max: 120, field: 'Google place id' });
+  if (placeId && !/^[A-Za-z0-9_-]{10,120}$/.test(placeId)) throw new HttpError(400, 'Google place id looks like ChIJ…');
   const rating = Number(body.rating);
   if (!Number.isFinite(rating) || rating < 0 || rating > 5) throw new HttpError(400, 'Rating must be between 0 and 5');
 
@@ -335,10 +364,13 @@ async function saveBranch(env, id, body) {
     phone: str(body.phone, { max: 24, field: 'Phone' }),
     whatsapp,
     maps_url: maps,
+    place_id: placeId,
     rating: Math.round(rating * 10) / 10,
     reviews: int(body.reviews, { min: 0, max: 10_000_000, field: 'Reviews', fallback: 0 }),
     open_time: open,
     close_time: close,
+    hours_note_ar: str(body.hours_note_ar, { max: 160, field: 'Arabic hours note' }),
+    hours_note_en: str(body.hours_note_en, { max: 160, field: 'English hours note' }),
     delivery: bool(body.delivery),
     accepting: bool(body.accepting),
   };
@@ -471,6 +503,26 @@ async function createOrder(request, env) {
   return json({ ok: true, id, total });
 }
 
+// Anonymous "which dishes get looked at" counter: item id + Amman day, nothing about the visitor is stored.
+async function logView(request, env) {
+  const key = `view:${request.headers.get('cf-connecting-ip') || 'local'}`;
+  const now = Math.floor(Date.now() / 1000);
+  const row = await env.DB.prepare('SELECT count, window_start FROM login_attempts WHERE ip = ?').bind(key).first();
+  if (row && now - row.window_start < 600) {
+    if (row.count >= 120) return json({ ok: true, skipped: true });
+    await env.DB.prepare('UPDATE login_attempts SET count = count + 1 WHERE ip = ?').bind(key).run();
+  } else {
+    await env.DB.prepare('INSERT OR REPLACE INTO login_attempts (ip, count, window_start) VALUES (?, 1, ?)').bind(key, now).run();
+  }
+  const body = await readJson(request, 1024);
+  const itemId = slug(body.item_id, 'item');
+  const item = await env.DB.prepare('SELECT id FROM items WHERE id = ? AND active = 1').bind(itemId).first();
+  if (!item) throw new HttpError(404, 'Item not found');
+  await env.DB.prepare('INSERT INTO item_views (item_id, day, views) VALUES (?, ?, 1) ON CONFLICT(item_id, day) DO UPDATE SET views = views + 1')
+    .bind(itemId, ammanDay(now)).run();
+  return json({ ok: true });
+}
+
 async function listOrders(env, url) {
   const limit = int(url.searchParams.get('limit'), { min: 1, max: 200, field: 'limit', fallback: 50 });
   const before = int(url.searchParams.get('before'), { min: 0, max: 4e9, field: 'before', fallback: 4e9 });
@@ -489,9 +541,11 @@ async function stats(env, url) {
   const todayStart = Math.floor((now + AMMAN_OFFSET) / 86400) * 86400 - AMMAN_OFFSET;
   const from = todayStart - (days - 1) * 86400;
 
-  const { results } = await env.DB.prepare(
-    'SELECT branch_id, total, items, created_at FROM orders WHERE created_at >= ? ORDER BY created_at DESC LIMIT 5000',
-  ).bind(from).all();
+  const [{ results }, { results: viewRows }] = await env.DB.batch([
+    env.DB.prepare('SELECT branch_id, total, items, created_at FROM orders WHERE created_at >= ? ORDER BY created_at DESC LIMIT 5000').bind(from),
+    env.DB.prepare(`SELECT v.item_id, i.name_ar, i.name_en, SUM(v.views) AS views FROM item_views v LEFT JOIN items i ON i.id = v.item_id
+      WHERE v.day >= ? GROUP BY v.item_id ORDER BY views DESC LIMIT 8`).bind(ammanDay(todayStart - 6 * 86400)),
+  ]);
 
   const byDay = {};
   for (let d = 0; d < days; d++) byDay[ammanDay(from + d * 86400)] = { count: 0, revenue: 0 };
@@ -531,5 +585,6 @@ async function stats(env, url) {
     byDay: Object.entries(byDay).map(([day, v]) => ({ day, ...v })),
     byBranch,
     top: Object.values(top).sort((a, b) => b.qty - a.qty).slice(0, 6),
+    viewed: viewRows,
   };
 }

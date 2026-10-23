@@ -16,8 +16,8 @@ function statements(sql) {
 
 export async function ensureSeeded(env) {
   if (ready) return;
-  const has = await env.DB.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'categories'").first();
-  if (!has) await env.DB.batch(statements(schemaSql).map((s) => env.DB.prepare(s)));
+  // every statement is CREATE … IF NOT EXISTS, so this also adds tables introduced after the first deploy
+  await env.DB.batch(statements(schemaSql).map((s) => env.DB.prepare(s)));
 
   const row = await env.DB.prepare('SELECT COUNT(*) AS n FROM categories').first();
   if (!row?.n) {
@@ -33,8 +33,8 @@ export async function ensureSeeded(env) {
           JSON.stringify(i.sizes), JSON.stringify(i.tags || []), JSON.stringify(i.options || []), i.featured ? 1 : 0, i.sold_out ? 1 : 0, i.is_dip ? 1 : 0, i.sort || 0, now));
     }
     for (const b of seed.branches) {
-      stmts.push(env.DB.prepare('INSERT OR IGNORE INTO branches (id,name_ar,name_en,address_ar,address_en,phone,whatsapp,maps_url,rating,reviews,open_time,close_time,delivery,accepting,sort) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
-        .bind(b.id, b.name_ar, b.name_en, b.address_ar, b.address_en, b.phone, b.whatsapp, b.maps_url, b.rating, b.reviews, b.open_time, b.close_time, b.delivery, b.accepting, b.sort));
+      stmts.push(env.DB.prepare('INSERT OR IGNORE INTO branches (id,name_ar,name_en,address_ar,address_en,phone,whatsapp,maps_url,place_id,rating,reviews,open_time,close_time,hours_note_ar,hours_note_en,delivery,accepting,sort) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
+        .bind(b.id, b.name_ar, b.name_en, b.address_ar, b.address_en, b.phone, b.whatsapp, b.maps_url, b.place_id || '', b.rating, b.reviews, b.open_time, b.close_time, b.hours_note_ar || '', b.hours_note_en || '', b.delivery, b.accepting, b.sort));
     }
     for (const [k, v] of Object.entries(seed.settings)) {
       stmts.push(env.DB.prepare('INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)').bind(k, String(v)));

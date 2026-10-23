@@ -15,7 +15,7 @@ const T = {
     delete: 'حذف', cancel: 'إلغاء', save: 'حفظ', categories: 'الأقسام',
     notConfigured: 'كلمة السر مش معرّفة على السيرفر. شغّل: npx wrangler secret put ADMIN_PASSWORD',
     ordersToday: 'طلبات اليوم', revenueToday: 'مبيعات اليوم', orders7: 'طلبات آخر ٧ أيام', avgOrder: 'معدّل الطلب',
-    estNote: 'من الطلبات المرسلة عبر الموقع', last14: 'آخر ١٤ يوم', byBranch: 'حسب الفرع (٧ أيام)', topItems: 'الأكثر طلباً (٧ أيام)',
+    estNote: 'من الطلبات المرسلة عبر الموقع', last14: 'آخر ١٤ يوم', byBranch: 'حسب الفرع (٧ أيام)', topItems: 'الأكثر طلباً (٧ أيام)', topViewed: 'الأكثر مشاهدة بالمنيو (٧ أيام)', views: 'مشاهدة',
     recent: 'آخر الطلبات', refresh: 'تحديث', noOrders: 'لسا ما في طلبات من الموقع. أول ما حدا يطلب، رح يبيّن هون.',
     time: 'الوقت', order: 'الطلب', branch: 'الفرع', type: 'النوع', customer: 'الزبون', total: 'المجموع',
     pickup: 'استلام', delivery: 'توصيل', orders: 'طلب', jd: 'د.أ',
@@ -29,17 +29,17 @@ const T = {
     category: 'القسم', id: 'المعرّف (بالإنجليزي)', idHint: 'حروف صغيرة وأرقام وشرطات فقط، ما بتتغير بعد الحفظ',
     sizes: 'الأحجام والأسعار', sizeAr: 'الحجم (عربي)', sizeEn: 'الحجم (إنجليزي)', price: 'السعر', addSize: 'زيد حجم',
     presetPieces: '٣/٤/٥ قطع', presetMeal: 'وجبة', presetDip: 'صوص ١/٣', presetOne: 'حجم واحد',
-    tags: 'وسوم', tag_spicy: 'حار', tag_grilled: 'مشوي', tag_signature: 'الأكثر طلباً', tag_new: 'جديد',
+    tags: 'وسوم', tag_spicy: 'حار', tag_grilled: 'مشوي', tag_signature: 'الأكثر طلباً', tag_new: 'جديد', tag_veg: 'نباتي', tag_nuts: 'فيه مكسرات', tag_special: 'عرض اليوم',
     options: 'خيارات الطلب', opt_heat: 'حار أو عادي', opt_flavour: 'نكهة (وينجز وبايتس)', opt_dip: 'صوص مع الوجبة', opt_upsize: 'كبّر الوجبة',
     flags: 'الحالة', featured: 'مميّز (اختيارات ماما)', soldOutAll: 'نفذ بكل الفروع', isDip: 'صوص بينختار مع الوجبات', active: 'ظاهر بالموقع', sort: 'الترتيب',
     saved: 'تم الحفظ ✓', deleted: 'انحذف', confirmDelete: 'أكيد بدك تحذف هالصنف؟ ما في رجعة.', error: 'صار خطأ',
     needSize: 'لازم يكون في حجم واحد على الأقل',
     catName: 'اسم القسم', tagline: 'سطر تعريفي', newCategory: 'قسم جديد', addCategory: 'زيد قسم', confirmDeleteCat: 'تحذف القسم؟',
     branches: 'الفروع', branchLbl: 'اسم الفرع', address: 'العنوان', phone: 'رقم الهاتف', whatsapp: 'رقم الواتساب (دولي بدون +)', waHint: 'مثال: 962775866660 — الطلبات بتوصل لهون',
-    maps: 'رابط Google Maps', rating: 'تقييم Google', reviews: 'عدد المراجعات', opens: 'بيفتح', closes: 'بسكّر', hasDelivery: 'في توصيل', accepting: 'مستقبل طلبات أونلاين',
+    maps: 'رابط Google Maps', rating: 'تقييم Google', reviews: 'عدد المراجعات', opens: 'بيفتح', closes: 'بسكّر', hasDelivery: 'في توصيل', hoursNote: 'ملاحظة الدوام', hoursNoteHint: 'مثل: الخميس والجمعة لـ ٢ بالليل', placeId: 'Google place id', placeIdHint: 'للاتجاهات والمراجعات — بيبلّش بـ ChIJ', accepting: 'مستقبل طلبات أونلاين',
     settings: 'الإعدادات', comboPrice: 'سعر تكبير الوجبة', heroRating: 'التقييم بالواجهة', heroReviews: 'عدد المراجعات بالواجهة',
     deliveryNoteAr: 'ملاحظة التوصيل (عربي)', deliveryNoteEn: 'ملاحظة التوصيل (إنجليزي)', announceAr: 'شريط إعلان (عربي)', announceEn: 'شريط إعلان (إنجليزي)', announceHint: 'اتركه فاضي لإخفائه — مثل: عرض الويكند: تكبير الوجبة مجاناً!',
-    social: 'روابط السوشال', ordersEnabled: 'الطلب أونلاين شغّال', general: 'عام',
+    social: 'روابط السوشال', specialHoursAr: 'دوام خاص — أعياد ورمضان (عربي)', specialHoursEn: 'دوام خاص — أعياد ورمضان (إنجليزي)', specialHoursHint: 'بيبيّن فوق أوقات الدوام. اتركه فاضي لإخفائه — مثل: رمضان: من ١ الظهر لـ ٣ الفجر', halal: 'إظهار «كل الدجاج حلال»', ordersEnabled: 'الطلب أونلاين شغّال', general: 'عام',
     orderDetails: 'تفاصيل الطلب', items: 'الأصناف', chat: 'افتح محادثة واتساب', call: 'اتصال',
     wrongPw: 'كلمة السر غلط', showPw: 'إظهار',
   },
@@ -50,7 +50,7 @@ const T = {
     delete: 'Delete', cancel: 'Cancel', save: 'Save', categories: 'Categories',
     notConfigured: 'No admin password is set on the server. Run: npx wrangler secret put ADMIN_PASSWORD',
     ordersToday: 'Orders today', revenueToday: 'Sales today', orders7: 'Orders, last 7 days', avgOrder: 'Average order',
-    estNote: 'from orders sent through the site', last14: 'Last 14 days', byBranch: 'By branch (7 days)', topItems: 'Top items (7 days)',
+    estNote: 'from orders sent through the site', last14: 'Last 14 days', byBranch: 'By branch (7 days)', topItems: 'Top items (7 days)', topViewed: 'Most viewed on the menu (7 days)', views: 'views',
     recent: 'Recent orders', refresh: 'Refresh', noOrders: 'No website orders yet. They will appear here as soon as someone orders.',
     time: 'Time', order: 'Order', branch: 'Branch', type: 'Type', customer: 'Customer', total: 'Total',
     pickup: 'Pickup', delivery: 'Delivery', orders: 'orders', jd: 'JD',
@@ -64,17 +64,17 @@ const T = {
     category: 'Category', id: 'ID (English)', idHint: 'lowercase letters, numbers and dashes; fixed after saving',
     sizes: 'Sizes & prices', sizeAr: 'Size (Arabic)', sizeEn: 'Size (English)', price: 'Price', addSize: 'Add size',
     presetPieces: '3/4/5 pcs', presetMeal: 'Meal', presetDip: 'Dip 1/3', presetOne: 'Single size',
-    tags: 'Tags', tag_spicy: 'Spicy', tag_grilled: 'Grilled', tag_signature: 'Fan favourite', tag_new: 'New',
+    tags: 'Tags', tag_spicy: 'Spicy', tag_grilled: 'Grilled', tag_signature: 'Fan favourite', tag_new: 'New', tag_veg: 'Vegetarian', tag_nuts: 'Contains nuts', tag_special: 'Today’s special',
     options: 'Order options', opt_heat: 'Spicy or mild', opt_flavour: 'Flavour (wings & bites)', opt_dip: 'Dip with the meal', opt_upsize: 'Upsize the meal',
     flags: 'Status', featured: 'Featured (Mama’s picks)', soldOutAll: 'Sold out everywhere', isDip: 'Dip choice for meals', active: 'Visible on site', sort: 'Sort order',
     saved: 'Saved ✓', deleted: 'Deleted', confirmDelete: 'Delete this item? This cannot be undone.', error: 'Something went wrong',
     needSize: 'At least one size is required',
     catName: 'Category name', tagline: 'Tagline', newCategory: 'New category', addCategory: 'Add category', confirmDeleteCat: 'Delete this category?',
     branches: 'Branches', branchLbl: 'Branch name', address: 'Address', phone: 'Phone', whatsapp: 'WhatsApp number (international, no +)', waHint: 'e.g. 962775866660 — orders are sent here',
-    maps: 'Google Maps link', rating: 'Google rating', reviews: 'Review count', opens: 'Opens', closes: 'Closes', hasDelivery: 'Delivery available', accepting: 'Accepting online orders',
+    maps: 'Google Maps link', rating: 'Google rating', reviews: 'Review count', opens: 'Opens', closes: 'Closes', hasDelivery: 'Delivery available', hoursNote: 'Hours note', hoursNoteHint: 'e.g. Thu & Fri till 2 AM', placeId: 'Google place id', placeIdHint: 'For directions and reviews — starts with ChIJ', accepting: 'Accepting online orders',
     settings: 'Settings', comboPrice: 'Upsize price', heroRating: 'Rating shown on the homepage', heroReviews: 'Review count on the homepage',
     deliveryNoteAr: 'Delivery note (Arabic)', deliveryNoteEn: 'Delivery note (English)', announceAr: 'Announcement bar (Arabic)', announceEn: 'Announcement bar (English)', announceHint: 'Leave empty to hide — e.g. Weekend deal: free meal upsize!',
-    social: 'Social links', ordersEnabled: 'Online ordering is on', general: 'General',
+    social: 'Social links', specialHoursAr: 'Special hours — holidays & Ramadan (Arabic)', specialHoursEn: 'Special hours — holidays & Ramadan (English)', specialHoursHint: 'Shown above the opening hours. Leave empty to hide — e.g. Ramadan: 1 PM – 3 AM', halal: 'Show “All chicken is halal”', ordersEnabled: 'Online ordering is on', general: 'General',
     orderDetails: 'Order details', items: 'Items', chat: 'Open WhatsApp chat', call: 'Call',
     wrongPw: 'Wrong password', showPw: 'Show',
   },
@@ -220,6 +220,8 @@ async function renderOverview() {
         ${S.data.branches.map((b) => { const x = stats.byBranch[b.id] || { count: 0, revenue: 0 }; return `<div class="hbar"><b>${esc(L(b, 'name'))}</b><span>${x.count} ${esc(t('orders'))} · ${jd(x.revenue)}</span><i style="--w:${(x.count / bTotal) * 100}%"></i></div>`; }).join('')}
         <h3 style="margin-top:18px">${esc(t('topItems'))}</h3>
         ${stats.top.length ? stats.top.map((x) => `<div class="hbar"><span>${esc(x[`name_${S.lang}`] || x.name_ar)}</span><b>×${x.qty}</b><i style="--w:${(x.qty / topMax) * 100}%"></i></div>`).join('') : `<p class="empty">—</p>`}
+        <h3 style="margin-top:18px">${esc(t('topViewed'))}</h3>
+        ${stats.viewed?.length ? stats.viewed.map((x) => `<div class="hbar"><span>${esc(x[`name_${S.lang}`] || x.name_ar || x.item_id)}</span><b>${x.views} ${esc(t('views'))}</b><i style="--w:${(x.views / stats.viewed[0].views) * 100}%"></i></div>`).join('') : `<p class="empty">—</p>`}
       </div>
     </div>
     <div class="card" style="margin-top:14px">
@@ -387,7 +389,7 @@ function openEditor(item) {
     </div>
 
     <h3 class="sec">${esc(t('tags'))}</h3>
-    <div class="checks">${['spicy', 'grilled', 'signature', 'new'].map((tg) => `<label class="sw sw--plain"><input type="checkbox" name="tag" value="${tg}" ${editing.tags.includes(tg) ? 'checked' : ''}><i></i>${esc(t(`tag_${tg}`))}</label>`).join('')}</div>
+    <div class="checks">${['special', 'spicy', 'veg', 'nuts', 'grilled', 'signature', 'new'].map((tg) => `<label class="sw sw--plain"><input type="checkbox" name="tag" value="${tg}" ${editing.tags.includes(tg) ? 'checked' : ''}><i></i>${esc(t(`tag_${tg}`))}</label>`).join('')}</div>
 
     <h3 class="sec">${esc(t('options'))}</h3>
     <div class="checks">${OPTIONS.map((o) => `<label class="sw sw--plain"><input type="checkbox" name="option" value="${o}" ${(editing.options || []).includes(o) ? 'checked' : ''}><i></i>${esc(t(`opt_${o}`))}</label>`).join('')}</div>
@@ -612,6 +614,10 @@ function renderBranches() {
         <label class="fld"><span>${esc(t('whatsapp'))}</span><input type="tel" name="whatsapp" dir="ltr" required value="${esc(b.whatsapp)}"><small>${esc(t('waHint'))}</small></label>
         <label class="fld"><span>${esc(t('phone'))}</span><input type="tel" name="phone" dir="ltr" value="${esc(b.phone)}"></label>
         <label class="fld" style="grid-column:1/-1"><span>${esc(t('maps'))}</span><input type="url" name="maps_url" dir="ltr" value="${esc(b.maps_url)}"></label>
+        <label class="fld"><span>${esc(t('placeId'))}</span><input type="text" name="place_id" dir="ltr" maxlength="120" value="${esc(b.place_id || '')}"><small>${esc(t('placeIdHint'))}</small></label>
+        <span></span>
+        <label class="fld"><span>${esc(t('hoursNote'))} (AR)</span><input type="text" name="hours_note_ar" dir="rtl" maxlength="160" value="${esc(b.hours_note_ar || '')}"><small>${esc(t('hoursNoteHint'))}</small></label>
+        <label class="fld"><span>${esc(t('hoursNote'))} (EN)</span><input type="text" name="hours_note_en" dir="ltr" maxlength="160" value="${esc(b.hours_note_en || '')}"></label>
       </div>
       <div class="cols cols--3">
         <label class="fld"><span>${esc(t('opens'))}</span><input type="time" name="open_time" required value="${esc(b.open_time)}"></label>
@@ -631,7 +637,8 @@ function renderBranches() {
     const el = f.elements;
     const body = {
       name_ar: el.name_ar.value, name_en: el.name_en.value, address_ar: el.address_ar.value, address_en: el.address_en.value,
-      whatsapp: el.whatsapp.value, phone: el.phone.value, maps_url: el.maps_url.value,
+      whatsapp: el.whatsapp.value, phone: el.phone.value, maps_url: el.maps_url.value, place_id: el.place_id.value.trim(),
+      hours_note_ar: el.hours_note_ar.value, hours_note_en: el.hours_note_en.value,
       open_time: el.open_time.value, close_time: el.close_time.value, rating: el.rating.value, reviews: el.reviews.value || 0,
       accepting: el.accepting.checked, delivery: el.delivery.checked,
     };
@@ -651,7 +658,8 @@ function renderSettings() {
   v.innerHTML = `<div class="vhead"><h2>${esc(t('settings'))}</h2></div>
     <form class="card" id="setForm">
       <h3 class="sec">${esc(t('general'))}</h3>
-      <div class="checks" style="margin-bottom:14px"><label class="sw sw--plain"><input type="checkbox" name="orders_enabled" ${st.orders_enabled !== '0' ? 'checked' : ''}><i></i>${esc(t('ordersEnabled'))}</label></div>
+      <div class="checks" style="margin-bottom:14px"><label class="sw sw--plain"><input type="checkbox" name="orders_enabled" ${st.orders_enabled !== '0' ? 'checked' : ''}><i></i>${esc(t('ordersEnabled'))}</label>
+        <label class="sw sw--plain"><input type="checkbox" name="halal" ${st.halal === '1' ? 'checked' : ''}><i></i>${esc(t('halal'))}</label></div>
       <div class="cols cols--3">
         <label class="fld"><span>${esc(t('comboPrice'))}</span><span class="price"><input type="number" name="combo_price" min="0" step="0.05" value="${jd(st.combo_price)}"></span></label>
         <label class="fld"><span>${esc(t('heroRating'))}</span><input type="text" name="google_rating" dir="ltr" maxlength="3" value="${esc(st.google_rating)}"></label>
@@ -662,6 +670,8 @@ function renderSettings() {
         <label class="fld"><span>${esc(t('deliveryNoteEn'))}</span><input type="text" name="delivery_note_en" dir="ltr" maxlength="300" value="${esc(st.delivery_note_en)}"></label>
         <label class="fld"><span>${esc(t('announceAr'))}</span><input type="text" name="announcement_ar" dir="rtl" maxlength="300" value="${esc(st.announcement_ar)}"><small>${esc(t('announceHint'))}</small></label>
         <label class="fld"><span>${esc(t('announceEn'))}</span><input type="text" name="announcement_en" dir="ltr" maxlength="300" value="${esc(st.announcement_en)}"></label>
+        <label class="fld"><span>${esc(t('specialHoursAr'))}</span><input type="text" name="hours_note_ar" dir="rtl" maxlength="300" value="${esc(st.hours_note_ar || '')}"><small>${esc(t('specialHoursHint'))}</small></label>
+        <label class="fld"><span>${esc(t('specialHoursEn'))}</span><input type="text" name="hours_note_en" dir="ltr" maxlength="300" value="${esc(st.hours_note_en || '')}"></label>
       </div>
       <h3 class="sec">${esc(t('social'))}</h3>
       <div class="cols">
@@ -674,6 +684,8 @@ function renderSettings() {
     const el = e.target.elements;
     const body = {
       orders_enabled: el.orders_enabled.checked,
+      halal: el.halal.checked,
+      hours_note_ar: el.hours_note_ar.value, hours_note_en: el.hours_note_en.value,
       combo_price: toFils(el.combo_price.value || 0),
       google_rating: el.google_rating.value.trim(),
       google_reviews: Number(el.google_reviews.value || 0),

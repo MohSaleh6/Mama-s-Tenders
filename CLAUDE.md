@@ -7,7 +7,7 @@ This repo was rebranded from the Meat & Cheezz template. If it is copied for **a
 ## How it fits together
 | Path | What it is |
 |---|---|
-| `src/index.js` | Worker router: `GET /api/menu`, `POST /api/orders` (re-prices from D1, never trusts the browser; 30 per 10 min per IP), `/api/admin/*`, `/img/u/:id` (uploaded photos) |
+| `src/index.js` | Worker router: `GET /api/menu`, `POST /api/orders` (re-prices from D1, never trusts the browser; 30 per 10 min per IP), `POST /api/views` (anonymous dish-view counts → `item_views`, "most viewed" in the dashboard), `/api/admin/*`, `/img/u/:id` (uploaded photos), dynamic `/robots.txt` + `/sitemap.xml` (absolute URLs from the request origin) |
 | `src/seed.js` | On first request to an empty D1, creates tables and loads `public/data/menu.json`. A fresh database seeds itself, with no manual migration needed |
 | `src/auth.js`, `src/http.js` | Admin login: HMAC cookie, `ADMIN_PASSWORD` secret, 8 failures per 15 min lockout. Writes need header `x-mc-admin: 1`. Validation helpers |
 | `data/menu.mjs` | **Source of truth for the starting menu**: categories, items (prices in fils, 1 JD = 1000; `options` = any of `heat`/`flavour`/`dip`/`upsize`; `is_dip` = offered as the meal's dip), branches (hours, WhatsApp, maps URL), settings (`combo_price` is the upsize price). `npm run seed:build` writes `migrations/0002_seed.sql` and `public/data/menu.json` |
@@ -16,6 +16,7 @@ This repo was rebranded from the Meat & Cheezz template. If it is copied for **a
 | `public/js/i18n.js` | **All Arabic + English copy** (`ar` / `en` dictionaries; HTML uses `data-i18n="key"`), plus `FLAVOURS` (ids must match `FLAVOURS` in `src/index.js`), `DIP_COLORS` (swatch per dip id) and `QUOTES` (real Google reviews) |
 | `public/css/site.css` | All styles. Brand colours are tokens at the top (`--gold`, `--red`, `--ink`, …). RTL via logical properties |
 | `public/admin/` | Owner dashboard: items, per-size prices, order options, photos, sold-out (global or per branch), featured (Mama's picks), categories, branches, settings, orders log |
+| `public/privacy.html`, `public/terms.html` | Bilingual legal pages (no visitor cookies, so no cookie banner). Rewrite the contact details and partners for another restaurant |
 | `public/_headers` | CSP (allows the `google.com` map iframe) and long caching for `?v=` hashed assets |
 | `scripts/stamp.mjs` | `npm run stamp` content-hashes CSS/JS URLs (`?v=`). **Run it after every CSS/JS edit**, or browsers keep the old file for a year |
 | `tools/` | Brand, image and test tooling (see below). Not deployed |
@@ -33,6 +34,8 @@ Local dev: `npm install && npm run dev` serves on http://127.0.0.1:8787 with a l
    - `BRANCH_PHOTOS`, which maps branch id to `public/img/branches/<id>-480|800.webp`.
    - The `mapQuery()` fallback text, and the upsell id list in `renderCart`.
    - `data-open-meal="tenders-meal" data-size="5pc"` in `index.html` (the item and size the meal-box CTA opens; its price is shown in the scene).
+   - `renderJsonLd()` builds the Restaurant schema from live data; the static `#ldjson` in `index.html` is only the no-JS fallback, so update both.
+   - Branch `place_id` (Google place id) powers Get directions, the reviews link and "Rate us"; take it from the Maps search response.
    - The phone formatting, which is Jordan (+962). Adapt it for another country, along with the server check in `src/index.js` and the currency label (JD/fils) in `i18n.js`.
 5. **Logo**: a raster logo on black → `python3 tools/brand/trace_logo.py <logo.png> tools/out/logo` writes `logo.svg` (round badge, one traced layer per brand colour) and `tagline.svg`. Tune the colour tests, `MARK_Y` and `BADGE` at the top of the script for another logo. Copy them to `public/img/`, and `logo.svg` to `public/favicon.svg`. The logo is used as an `<img>` (multi-colour), not an inline symbol. A real vector logo from the client goes in the same places.
 6. **Colours & fonts**: the tokens at the top of `site.css` (`--gold`, `--red`, …) and the `@font-face` rules (Latin display, Arabic display, body). Check contrast of text on the brand colour.

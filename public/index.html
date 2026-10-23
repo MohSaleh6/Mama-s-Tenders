@@ -20,9 +20,9 @@
 <link rel="preload" href="/fonts/cairo-arabic.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/img/logo.svg" as="image" type="image/svg+xml">
 <script src="/js/boot.js?v=bf3444d290"></script>
-<link rel="stylesheet" href="/css/site.css?v=fff64ee519">
-<script type="module" src="/js/app.js?v=97c3f3e71a"></script>
-<script type="application/ld+json">
+<link rel="stylesheet" href="/css/site.css?v=b0d4a4ea35">
+<script type="module" src="/js/app.js?v=66b2019cf3"></script>
+<script type="application/ld+json" id="ldjson">
 {
   "@context": "https://schema.org",
   "@type": "Restaurant",
@@ -40,7 +40,8 @@
       "@type": "Restaurant",
       "name": "MAMA'S TENDERS — Marj Al Hamam",
       "address": { "@type": "PostalAddress", "streetAddress": "Saeed Al Abbadi St., Marj Al Hamam", "addressLocality": "Amman", "addressCountry": "JO" },
-      "geo": { "@type": "GeoCoordinates", "latitude": 31.8964094, "longitude": 35.8647659 }
+      "geo": { "@type": "GeoCoordinates", "latitude": 31.8964094, "longitude": 35.8647659 },
+      "openingHours": "Mo-Su 11:00-02:00"
     },
     {
       "@type": "Restaurant",
@@ -99,6 +100,8 @@
   <symbol id="i-insta" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.3" cy="6.7" r="1.2" fill="currentColor"/></symbol>
   <symbol id="i-tiktok" viewBox="0 0 24 24"><path d="M14 3v11.5a3.5 3.5 0 1 1-3-3.4V8a6.5 6.5 0 1 0 6 6.5V8.7a7 7 0 0 0 4 1.3V7a4 4 0 0 1-4-4z" fill="currentColor"/></symbol>
   <symbol id="i-fb" viewBox="0 0 24 24"><path d="M14 8.5V6.8c0-.8.5-1.3 1.3-1.3H17V2.3h-2.6C11.9 2.3 10.6 4 10.6 6.3v2.2H8V12h2.6v9.7H14V12h2.7l.4-3.5z" fill="currentColor"/></symbol>
+  <symbol id="i-nut" viewBox="0 0 24 24"><path d="M12 3c4.4 0 7.5 3.3 7.5 7.7 0 5.4-3.6 10.3-7.5 10.3S4.5 16.1 4.5 10.7C4.5 6.3 7.6 3 12 3z" fill="currentColor"/><path d="M9 8.5c1.6 1 4.4 1 6 0M8.6 12.5c2 1.2 4.8 1.2 6.8 0M9.4 16.4c1.5.8 3.7.8 5.2 0" fill="none" stroke="#0d0b09" stroke-width="1.3" stroke-linecap="round"/></symbol>
+  <symbol id="i-halal" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7.5 12.5l3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="i-ext" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
 </svg>
 
@@ -115,6 +118,8 @@
     </a>
     <nav class="nav__links" aria-label="الأقسام" data-i18n-attr="aria-label:navLabel">
       <a href="#menu" data-i18n="navMenu">المنيو</a>
+      <a href="#about" data-i18n="navAbout">عنّا</a>
+      <a href="#hours" data-i18n="navHours">الساعات</a>
       <a href="#branches" data-i18n="navBranches">الفروع</a>
       <a href="#reviews" data-i18n="navReviews">آراء الزباين</a>
     </nav>
@@ -229,6 +234,13 @@
       <p class="kicker" data-i18n="menuKicker">المنيو الكامل</p>
       <h2 class="sectitle" data-i18n="menuTitle">جوعان؟ اختار.</h2>
       <p class="secsub" id="menuBranchNote" data-i18n="menuSub">الأسعار بالدينار الأردني. كل الوجبات بتنكبر بدينار.</p>
+      <div class="diet" aria-label="دليل الأكل" data-i18n-attr="aria-label:dietTitle">
+        <span class="tag tag--spicy"><svg class="ic"><use href="#i-chili"/></svg><span data-i18n="tag_spicy">حار</span></span>
+        <span class="tag tag--veg"><svg class="ic"><use href="#i-leaf"/></svg><span data-i18n="tag_veg">نباتي</span></span>
+        <span class="tag tag--nuts"><svg class="ic"><use href="#i-nut"/></svg><span data-i18n="tag_nuts">فيه مكسرات</span></span>
+        <span class="tag tag--halal" id="halalTag" hidden><svg class="ic"><use href="#i-halal"/></svg><span data-i18n="halalLbl">كل الدجاج حلال</span></span>
+        <small class="diet__note" data-i18n="allergyNote">عندك حساسية من أكل معيّن؟ احكي للفرع قبل ما تطلب.</small>
+      </div>
     </div>
     <div class="container picks" id="picksWrap" hidden>
       <h3 class="picks__title"><svg class="ic"><use href="#i-star"/></svg><span data-i18n="picksTitle">اختيارات ماما</span></h3>
@@ -248,6 +260,41 @@
       <div class="skeleton-grid" id="menuSkeleton"><i></i><i></i><i></i><i></i><i></i><i></i></div>
     </div>
     <p class="container menu__empty" id="menuEmpty" hidden data-i18n="noResults">ما لقينا إشي بهالاسم… جرّب "تندرز" أو "بيج ماما".</p>
+  </section>
+
+  <!-- ═══ About ═══ -->
+  <section class="about" id="about">
+    <div class="container about__grid">
+      <div class="about__copy">
+        <p class="kicker" data-i18n="aboutKicker">قصتنا</p>
+        <h2 class="sectitle" data-i18n="aboutTitle">على طريقة ماما</h2>
+        <p class="about__p" data-i18n="aboutP1">براندنا أردني وفكرته بسيطة: تندرز دجاج مقرمشة على طريقة ماما. قطع صدر دجاج متبّلة ومقرمشة، بتطلع سخنة من المقلى، حار أو عادي على ذوقك.</p>
+        <p class="about__p" data-i18n="aboutP2">وحوالين التندرز: ساندويشات، وينجز وبايتس بنكهاتها، بطاطا كرنكل، خبز بالثوم وكولسلو، وصوصات ماما. تعال لأقرب فرع، أو اطلب واستلم بدون ما تستنى.</p>
+        <div class="about__stats">
+          <div><b id="aboutBranches">4</b><span data-i18n="aboutBranches">فروع بعمّان</span></div>
+          <div><b id="aboutRating">4.9</b><span data-i18n="aboutRating">تقييم Google</span></div>
+          <div><b id="aboutReviews">+13,000</b><span data-i18n="aboutReviews">مراجعة</span></div>
+        </div>
+        <div class="about__social" id="aboutSocial"></div>
+      </div>
+      <figure class="about__photo">
+        <img src="/img/branches/seventh-circle-800.webp" srcset="/img/branches/seventh-circle-480.webp 480w, /img/branches/seventh-circle-800.webp 800w" sizes="(min-width: 900px) 560px, 92vw" alt="" width="800" height="500" loading="lazy" decoding="async">
+        <img class="about__badge" src="/img/logo.svg" alt="" width="120" height="120" loading="lazy">
+      </figure>
+    </div>
+  </section>
+
+  <!-- ═══ Opening hours ═══ -->
+  <section class="hours" id="hours">
+    <div class="container">
+      <div class="sechead">
+        <p class="kicker" data-i18n="hoursKicker">أوقات الدوام</p>
+        <h2 class="sectitle" data-i18n="hoursTitle">إيمتى فاتحين؟</h2>
+      </div>
+      <div class="hours__special" id="hoursSpecial" hidden><svg class="ic"><use href="#i-clock"/></svg><div><b data-i18n="hoursSpecial">دوام خاص</b><p id="hoursSpecialText"></p></div></div>
+      <div class="hours__grid" id="hoursGrid"></div>
+      <p class="hours__foot"><span data-i18n="hoursTz">كل الأوقات بتوقيت عمّان.</span> <span id="hoursHolidays" data-i18n="hoursHolidays">أوقات الأعياد ورمضان بتنزل هون أول بأول.</span></p>
+    </div>
   </section>
 
   <!-- ═══ Branches ═══ -->
@@ -274,6 +321,7 @@
       <h2 class="sectitle"><span data-i18n="rvTitle">عمّان بتحكي</span> <span class="rv-score"><svg class="ic"><use href="#i-star"/></svg> <span id="rvScore">4.9</span></span></h2>
     </div>
     <div class="container quotes" id="quotes"></div>
+    <div class="container rv-actions" id="rvActions"></div>
   </section>
 
 </main>
@@ -296,6 +344,7 @@
       <button class="linkbtn" type="button" data-open-cart data-i18n="footCart">سلّتك</button>
     </div>
   </div>
+  <div class="container foot__legal"><a href="/privacy" data-i18n="privacy">سياسة الخصوصية</a><a href="/terms" data-i18n="terms">شروط الطلب</a><a id="footGoogle" href="https://www.google.com/maps/search/?api=1&amp;query=MAMA%27S+TENDERS+Amman" target="_blank" rel="noopener" data-i18n="googleProfile">صفحتنا على Google</a></div>
   <div class="container foot__base"><span>© <span id="year">2026</span> MAMA’S TENDERS</span><a href="#top" class="totop" aria-label="للأعلى" data-i18n-attr="aria-label:toTop"><svg class="ic"><use href="#i-tender"/></svg></a></div>
 </footer>
 

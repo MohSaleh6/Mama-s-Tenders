@@ -1,6 +1,6 @@
 // Mama's Tenders — customer site
 // Vanilla JS, no dependencies. Arabic-first, RTL-aware.
-import { DICT, QUOTES, FLAVOURS, DIP_COLORS } from './i18n.js?v=efa54fe92b';
+import { DICT, QUOTES, FLAVOURS, DIP_COLORS } from './i18n.js?v=fb4d8a7755';
 
 /* ════════════════════════ utilities ════════════════════════ */
 const $ = (s, r = document) => r.querySelector(s);
@@ -125,6 +125,9 @@ function ingest(menu) {
   S.cats = Object.fromEntries(menu.categories.map((c) => [c.id, c]));
   S.branches = Object.fromEntries(menu.branches.map((b) => [b.id, b]));
   if (S.branchId && !S.branches[S.branchId]) S.branchId = null;
+  // table QR codes link to /?branch=<id>: that branch is preselected
+  const qb = new URLSearchParams(location.search).get('branch');
+  if (qb && S.branches[qb]) { S.branchId = qb; store.set('mt_branch', qb); }
   // Drop cart lines that no longer exist
   const before = S.cart.length;
   S.cart = S.cart.filter((l) => S.items[l.id] && S.items[l.id].sizes.some((s) => s.id === l.size));
@@ -168,7 +171,7 @@ function renderAll() {
   renderHeroMeta();
   renderBranchChip();
   updateCartBadges(false);
-  const rest = [renderMenu, renderBranches, renderQuotes, renderFooter];
+  const rest = [renderMenu, renderHours, renderBranches, renderQuotes, renderFooter, renderJsonLd];
   if (firstRender) {
     firstRender = false;
     const target = location.hash.length > 1 && location.hash !== '#top' ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
@@ -208,6 +211,11 @@ function renderHeroMeta() {
     $('#heroOpen').textContent = t('heroClosed', { t: fmtClock(toMin(soon.open_time)) });
   }
 
+  $('#halalTag').hidden = st.halal !== '1';
+  $('#aboutRating').textContent = rating;
+  $('#aboutReviews').textContent = `+${reviews.toLocaleString('en-US')}`;
+  $('#aboutBranches').textContent = String(Object.keys(S.branches).length);
+
   // Talabat links
   const tal = talabatUrl();
   $$('#heroTalabat, #footTalabat, #talabatBtn').forEach((a) => { a.hidden = !tal; if (tal) a.href = tal; });
@@ -226,8 +234,9 @@ function renderHeroMeta() {
 }
 
 function tagChips(item, withNote = false) {
-  const map = { spicy: 'chili', grilled: 'grill', signature: 'star', new: 'bolt' };
-  let out = (item.tags || []).filter((x) => map[x]).map((x) => `<span class="tag tag--${x}">${icon(map[x])}${esc(t(`tag_${x}`))}</span>`).join('');
+  const map = { special: 'flame', spicy: 'chili', veg: 'leaf', nuts: 'nut', grilled: 'grill', signature: 'star', new: 'bolt' };
+  const order = Object.keys(map);
+  let out = [...(item.tags || [])].filter((x) => map[x]).sort((a, b) => order.indexOf(a) - order.indexOf(b)).map((x) => `<span class="tag tag--${x}">${icon(map[x])}${esc(t(`tag_${x}`))}</span>`).join('');
   if (withNote && L(item, 'note')) out += `<span class="tag tag--note">${esc(L(item, 'note'))}</span>`;
   return out;
 }
@@ -245,7 +254,7 @@ function cardHTML(item, idx) {
   const name = L(item, 'name');
   const search = `${item.name_ar} ${item.name_en} ${item.desc_ar} ${item.desc_en}`;
   return `<article class="card reveal${out ? ' is-out' : ''}" data-id="${esc(item.id)}" data-search="${esc(norm(search))}" style="--rd:${(idx % 3) * 70}ms">
-    ${out ? `<span class="stamp">${esc(t('soldOut'))}</span>` : ''}
+    ${out ? `<span class="stamp">${esc(t('soldOut'))}</span>` : (item.tags || []).includes('special') ? `<span class="ribbon">${icon('flame')}${esc(t('tag_special'))}</span>` : ''}
     <button class="card__hit" type="button" data-open="${esc(item.id)}" aria-label="${esc(name)}"></button>
     <div class="card__media"><img src="${esc(item.image)}" alt="" loading="lazy" decoding="async" width="560" height="420"></div>
     <div class="card__body">
@@ -285,11 +294,12 @@ function miniHTML(item) {
 }
 
 function renderPicks() {
-  const picks = S.menu.items.filter((i) => i.featured && i.image && !isOut(i));
+  const special = (i) => (i.tags || []).includes('special');
+  const picks = S.menu.items.filter((i) => (i.featured || special(i)) && i.image && !isOut(i)).sort((a, b) => special(b) - special(a));
   $('#picksWrap').hidden = !picks.length;
   $('#picks').innerHTML = picks.map((i) => `<button class="pick" type="button" data-open="${esc(i.id)}">
     <span class="pick__img"><img src="${esc(smImg(i.image))}" alt="" loading="lazy" decoding="async" width="220" height="165"></span>
-    <b>${esc(L(i, 'name'))}</b><span class="pick__price">${money(minPrice(i))} <small>${esc(t('cur'))}</small></span></button>`).join('');
+    ${special(i) ? `<span class="pick__special">${esc(t('tag_special'))}</span>` : ''}<b>${esc(L(i, 'name'))}</b><span class="pick__price">${money(minPrice(i))} <small>${esc(t('cur'))}</small></span></button>`).join('');
 }
 
 function renderMenu() {
@@ -325,6 +335,32 @@ function renderMenu() {
   if ($('#search').value) runSearch();
 }
 
+// Google Maps links for a branch: exact place when we know its place id
+const placeOf = (b) => { if (b.place_id) return b.place_id; try { return new URL(b.maps_url).searchParams.get('query_place_id') || ''; } catch { return ''; } };
+const directionsUrl = (b) => { const id = placeOf(b); return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(mapQuery(b))}${id ? `&destination_place_id=${encodeURIComponent(id)}` : ''}`; };
+const reviewsUrl = (b) => (placeOf(b) ? `https://search.google.com/local/reviews?placeid=${encodeURIComponent(placeOf(b))}` : b.maps_url);
+const writeReviewUrl = (b) => (placeOf(b) ? `https://search.google.com/local/writereview?placeid=${encodeURIComponent(placeOf(b))}` : b.maps_url);
+
+function renderHours() {
+  const st = S.menu.settings || {};
+  const special = L(st, 'hours_note');
+  $('#hoursSpecial').hidden = !special;
+  $('#hoursSpecialText').textContent = special;
+  $('#hoursHolidays').hidden = Boolean(special);
+  $('#hoursGrid').innerHTML = Object.values(S.branches).map((b) => {
+    const s2 = branchStatus(b);
+    return `<article class="hcard${S.branchId === b.id ? ' is-selected' : ''}">
+      <div class="hcard__top"><h3>${esc(L(b, 'name'))}</h3><span class="status${s2.open ? '' : ' is-closed'}"><i class="dot${s2.open ? '' : ' is-closed'}"></i>${esc(s2.open ? t('openUntil', { t: fmtClock(toMin(b.close_time)) }) : t('opensAt', { t: fmtClock(toMin(b.open_time)) }))}</span></div>
+      <p class="hcard__time">${icon('clock')}<span>${esc(t('hoursToday'))}</span><b dir="auto">${esc(t('hours', { o: fmtClock(toMin(b.open_time)), c: fmtClock(toMin(b.close_time)) }))}</b></p>
+      ${L(b, 'hours_note') ? `<p class="hcard__note">${esc(L(b, 'hours_note'))}</p>` : ''}
+      <div class="hcard__actions">
+        <a class="btn btn--ghost" href="${esc(directionsUrl(b))}" target="_blank" rel="noopener">${icon('pin')}${esc(t('directions'))}</a>
+        ${b.phone ? `<a class="btn btn--ghost" href="tel:${esc(b.phone)}" aria-label="${esc(`${t('call')} ${L(b, 'name')}`)}">${icon('phone')}${esc(t('call'))}</a>` : ''}
+      </div>
+    </article>`;
+  }).join('');
+}
+
 const BRANCH_PHOTOS = {
   'marj-al-hamam': '/img/branches/marj-al-hamam',
   'seventh-circle': '/img/branches/seventh-circle',
@@ -348,13 +384,13 @@ function renderBranches() {
         <span class="status${st.open ? '' : ' is-closed'}"><i class="dot${st.open ? '' : ' is-closed'}"></i>${esc(st.label)}</span>
       </div>
       <div class="bcard__meta">
-        <span>${icon('star')}<b>${esc(Number(b.rating).toFixed(1))}</b>&nbsp;${esc(t('reviewsN', { n: Number(b.reviews).toLocaleString('en-US') }))}</span>
-        <span>${icon('clock')}<span dir="auto">${esc(t('hours', { o: fmtClock(toMin(b.open_time)), c: fmtClock(toMin(b.close_time)) }))}</span></span>
+        <a class="bcard__rating" href="${esc(reviewsUrl(b))}" target="_blank" rel="noopener">${icon('star')}<b>${esc(Number(b.rating).toFixed(1))}</b>&nbsp;${esc(t('reviewsN', { n: Number(b.reviews).toLocaleString('en-US') }))}</a>
+        <span>${icon('clock')}<span dir="auto">${esc(t('hours', { o: fmtClock(toMin(b.open_time)), c: fmtClock(toMin(b.close_time)) }))}${L(b, 'hours_note') ? ` · ${esc(L(b, 'hours_note'))}` : ''}</span></span>
         <span>${icon(b.delivery ? 'scooter' : 'store')}${esc(b.delivery ? t('deliveryOn') : t('pickupOnly'))}</span>
       </div>
       <div class="bcard__actions">
         <button class="btn btn--gold" type="button" data-order-branch="${esc(b.id)}">${icon('bag')}${esc(t('orderHere'))}</button>
-        ${b.maps_url ? `<a class="btn btn--ghost" href="${esc(b.maps_url)}" target="_blank" rel="noopener">${icon('pin')}${esc(t('directions'))}</a>` : ''}
+        <a class="btn btn--ghost" href="${esc(directionsUrl(b))}" target="_blank" rel="noopener">${icon('pin')}${esc(t('directions'))}</a>
         ${b.whatsapp ? `<a class="btn btn--wa" href="https://wa.me/${esc(b.whatsapp)}?text=${waText}" target="_blank" rel="noopener">${icon('wa')}${esc(t('whatsapp'))}</a>` : ''}
         ${b.phone ? `<a class="btn btn--ghost" href="tel:${esc(b.phone)}" aria-label="${esc(`${t('call')} ${L(b, 'name')}`)}">${icon('phone')}${esc(t('call'))}</a>` : ''}
       </div>
@@ -401,6 +437,8 @@ function renderQuotes() {
     <p lang="en" dir="ltr">“${esc(q.t)}”</p>
     <small>${icon('google')}${esc(t('gReview'))}${S.branches[q.b] ? ` · ${esc(L(S.branches[q.b], 'name'))}` : ''}</small>
   </figure>`).join('');
+  $('#rvActions').innerHTML = `<a class="btn btn--gold" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent("MAMA'S TENDERS Amman")}" target="_blank" rel="noopener">${icon('google')}${esc(t('allReviews'))}</a>`
+    + Object.values(S.branches).map((b) => `<a class="btn btn--ghost" href="${esc(writeReviewUrl(b))}" target="_blank" rel="noopener">${icon('star')}${esc(t('rateUs', { b: L(b, 'name') }))}</a>`).join('');
   observeReveals();
 }
 
@@ -409,12 +447,72 @@ function renderFooter() {
   const socials = [['instagram', 'insta'], ['tiktok', 'tiktok'], ['facebook', 'fb']]
     .filter(([k]) => st[k]).map(([k, ic]) => `<a href="${esc(st[k])}" target="_blank" rel="noopener" aria-label="${k}">${icon(ic)}</a>`).join('');
   $('#socials').innerHTML = socials;
+  $('#aboutSocial').innerHTML = socials ? `<span>${esc(t('followUs'))}</span>${socials}` : '';
   $('#footBranches').innerHTML = `<h3>${esc(t('navBranches'))}</h3>` + Object.values(S.branches).map((b) =>
     `<a href="${esc(b.maps_url || '#branches')}" target="_blank" rel="noopener">${esc(L(b, 'name'))} — ${esc(L(b, 'address'))}</a>`).join('');
   const first = Object.values(S.branches)[0];
   if (first?.phone) { const fp = $('#footPhone'); fp.href = `tel:${first.phone}`; fp.textContent = prettyPhone(first.phone); }
   if (first?.whatsapp) { const fw = $('#footWa'); fw.href = `https://wa.me/${first.whatsapp}`; fw.textContent = `WhatsApp ${prettyPhone(first.whatsapp)}`; }
   $('#year').textContent = String(new Date().getFullYear());
+}
+
+// Restaurant structured data from the live menu, so Google can show hours, branches and the menu
+function renderJsonLd() {
+  const o = location.origin;
+  const st = S.menu.settings || {};
+  const abs = (src) => (src ? new URL(src, o).href : undefined);
+  const byCat = {};
+  for (const i of S.menu.items) (byCat[i.category_id] ||= []).push(i);
+  const diet = (i) => ((i.tags || []).includes('veg') ? 'https://schema.org/VegetarianDiet' : undefined);
+  const ld = {
+    '@context': 'https://schema.org',
+    '@type': 'Restaurant',
+    '@id': `${o}/#restaurant`,
+    name: "MAMA'S TENDERS",
+    slogan: "...it's mama's way",
+    url: `${o}/`,
+    logo: `${o}/img/logo.svg`,
+    image: `${o}/img/og.jpg`,
+    servesCuisine: ['Fried Chicken', 'Chicken', 'Sandwiches'],
+    priceRange: 'JOD 1–24',
+    telephone: Object.values(S.branches)[0]?.phone,
+    acceptsReservations: false,
+    sameAs: ['instagram', 'tiktok', 'facebook', 'talabat'].map((k) => st[k]).filter(Boolean),
+    aggregateRating: { '@type': 'AggregateRating', ratingValue: st.google_rating || '4.9', reviewCount: String(st.google_reviews || '') },
+    hasMenu: {
+      '@type': 'Menu',
+      url: `${o}/#menu`,
+      inLanguage: ['ar', 'en'],
+      hasMenuSection: S.menu.categories.filter((c) => byCat[c.id]?.length).map((c) => ({
+        '@type': 'MenuSection',
+        name: c.name_en,
+        hasMenuItem: byCat[c.id].map((i) => ({
+          '@type': 'MenuItem',
+          name: i.name_en,
+          description: i.desc_en || undefined,
+          image: abs(i.image),
+          suitableForDiet: diet(i),
+          offers: { '@type': 'Offer', price: money(minPrice(i)), priceCurrency: 'JOD' },
+        })),
+      })),
+    },
+    department: Object.values(S.branches).map((b) => ({
+      '@type': 'Restaurant',
+      name: `MAMA'S TENDERS — ${b.name_en}`,
+      address: { '@type': 'PostalAddress', streetAddress: b.address_en, addressLocality: 'Amman', addressCountry: 'JO' },
+      telephone: b.phone || undefined,
+      hasMap: b.maps_url || undefined,
+      image: BRANCH_PHOTOS[b.id] ? `${o}${BRANCH_PHOTOS[b.id]}-800.webp` : undefined,
+      aggregateRating: b.reviews ? { '@type': 'AggregateRating', ratingValue: String(b.rating), reviewCount: String(b.reviews) } : undefined,
+      openingHoursSpecification: [{
+        '@type': 'OpeningHoursSpecification',
+        dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+        opens: b.open_time,
+        closes: b.close_time,
+      }],
+    })),
+  };
+  $('#ldjson').textContent = JSON.stringify(ld);
 }
 
 function prettyPhone(p) {
@@ -724,6 +822,7 @@ function openSheet(id, fromImg, opts = {}) {
     <div class="si__sec"><h4>${esc(t('noteTitle'))}</h4>
       <textarea class="si__note" name="note" rows="1" maxlength="140" placeholder="${esc(t('notePh'))}"></textarea></div>`;
 
+  logView(item.id);
   $('#sheetAdd').disabled = out;
   $('#sheetQtyVal').textContent = '1';
   $('#sheetTotal').dataset.v = '';
@@ -739,6 +838,14 @@ function openSheet(id, fromImg, opts = {}) {
       { transform: 'none', opacity: 1 },
     ], { duration: 520, delay: 90, easing: 'cubic-bezier(.16,1,.3,1)', fill: 'backwards' });
   }
+}
+
+// anonymous "most viewed dishes" counter for the dashboard, once per item per visit
+const viewed = new Set();
+function logView(id) {
+  if (viewed.has(id)) return;
+  viewed.add(id);
+  try { navigator.sendBeacon?.('/api/views', new Blob([JSON.stringify({ item_id: id })], { type: 'application/json' })); } catch { /* ignore */ }
 }
 
 function readSheet() {
@@ -1256,6 +1363,7 @@ function selectBranch(id, announce = true) {
   renderBranchChip();
   if (changed) {
     renderMenu();
+    renderHours();
     renderBranches();
     renderCart();
   }
@@ -1582,7 +1690,7 @@ addEventListener('resize', () => { const a = $('#tabs button[aria-selected="true
 addEventListener('storage', (e) => { if (e.key === 'mt_cart') { S.cart = store.get('mt_cart', []); renderCart(); } });
 
 // refresh open/closed labels every minute
-setInterval(() => { if (S.menu) { renderHeroMeta(); } }, 60000);
+setInterval(() => { if (S.menu) { renderHeroMeta(); renderHours(); } }, 60000);
 
 /* ════════════════════════ boot ════════════════════════ */
 if (S.lang !== 'ar') applyStatic();

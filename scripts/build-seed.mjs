@@ -24,7 +24,7 @@ for (const it of its) {
   sql.push(`INSERT OR REPLACE INTO items (id,category_id,name_ar,name_en,desc_ar,desc_en,note_ar,note_en,image,sizes,tags,options,featured,sold_out,is_dip,active,sort,updated_at) VALUES (${[it.id, it.category_id, it.name_ar, it.name_en, it.desc_ar, it.desc_en, it.note_ar, it.note_en, it.image, JSON.stringify(it.sizes), JSON.stringify(it.tags), JSON.stringify(it.options), it.featured, it.sold_out, it.is_dip, it.active, it.sort, it.updated_at].map(q).join(',')});`);
 }
 for (const b of branches) {
-  sql.push(`INSERT OR REPLACE INTO branches (id,name_ar,name_en,address_ar,address_en,phone,whatsapp,maps_url,rating,reviews,open_time,close_time,delivery,accepting,sort) VALUES (${[b.id, b.name_ar, b.name_en, b.address_ar, b.address_en, b.phone, b.whatsapp, b.maps_url, b.rating, b.reviews, b.open_time, b.close_time, b.delivery, b.accepting, b.sort].map(q).join(',')});`);
+  sql.push(`INSERT OR REPLACE INTO branches (id,name_ar,name_en,address_ar,address_en,phone,whatsapp,maps_url,place_id,rating,reviews,open_time,close_time,hours_note_ar,hours_note_en,delivery,accepting,sort) VALUES (${[b.id, b.name_ar, b.name_en, b.address_ar, b.address_en, b.phone, b.whatsapp, b.maps_url, b.place_id || '', b.rating, b.reviews, b.open_time, b.close_time, b.hours_note_ar || '', b.hours_note_en || '', b.delivery, b.accepting, b.sort].map(q).join(',')});`);
 }
 for (const [k, v] of Object.entries(settings)) {
   sql.push(`INSERT OR IGNORE INTO settings (key,value) VALUES (${q(k)},${q(v)});`);

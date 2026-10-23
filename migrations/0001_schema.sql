@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS items (
   note_en     TEXT NOT NULL DEFAULT '',
   image       TEXT NOT NULL DEFAULT '',
   sizes       TEXT NOT NULL DEFAULT '[]',   -- JSON: [{id, ar, en, price}]
-  tags        TEXT NOT NULL DEFAULT '[]',   -- JSON: ["spicy","grilled","signature","new"]
+  tags        TEXT NOT NULL DEFAULT '[]',   -- JSON: ["spicy","grilled","signature","new","veg","nuts","special"]
   options     TEXT NOT NULL DEFAULT '[]',   -- JSON: ["heat","flavour","dip","upsize"]
   featured    INTEGER NOT NULL DEFAULT 0,
   sold_out    INTEGER NOT NULL DEFAULT 0,   -- sold out everywhere
@@ -46,6 +46,9 @@ CREATE TABLE IF NOT EXISTS branches (
   reviews    INTEGER NOT NULL DEFAULT 0,
   open_time  TEXT NOT NULL DEFAULT '12:00',
   close_time TEXT NOT NULL DEFAULT '02:00',
+  hours_note_ar TEXT NOT NULL DEFAULT '',   -- e.g. "Thu & Fri till 2 AM"
+  hours_note_en TEXT NOT NULL DEFAULT '',
+  place_id   TEXT NOT NULL DEFAULT '',      -- Google Maps place id: directions, reviews, "rate us"
   delivery   INTEGER NOT NULL DEFAULT 1,
   accepting  INTEGER NOT NULL DEFAULT 1,
   sort       INTEGER NOT NULL DEFAULT 0
@@ -86,6 +89,14 @@ CREATE TABLE IF NOT EXISTS orders (
   created_at    INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_orders_created ON orders(created_at);
+
+-- Anonymous menu analytics: how often each item's sheet is opened, per Amman day (no personal data)
+CREATE TABLE IF NOT EXISTS item_views (
+  item_id TEXT NOT NULL,
+  day     TEXT NOT NULL,                   -- YYYY-MM-DD, Amman time
+  views   INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (item_id, day)
+);
 
 CREATE TABLE IF NOT EXISTS login_attempts (
   ip           TEXT PRIMARY KEY,

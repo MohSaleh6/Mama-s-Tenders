@@ -6,7 +6,7 @@
   "assets": {
     "directory": "./public",
     "binding": "ASSETS",
-    "run_worker_first": ["/api/*", "/img/u/*"],
+    "run_worker_first": ["/api/*", "/img/u/*", "/sitemap.xml", "/robots.txt"],
     "html_handling": "auto-trailing-slash",
     "not_found_handling": "404-page"
   },

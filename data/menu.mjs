@@ -240,7 +240,7 @@ export const items = [
       { id: 'solo-6', ar: '6 قطع سولو', en: '6 pcs solo', price: jd(3.15) },
       { id: 'meal-12', ar: 'وجبة 12 قطعة', en: '12 pcs meal', price: jd(5.8) },
     ],
-    tags: ['new', 'spicy'],
+    tags: ['new', 'spicy', 'nuts'],
   },
 
   // ─── Kids ─────────────────────────────────────────────────────────
@@ -262,37 +262,37 @@ export const items = [
     id: 'fries', category_id: 'sides', image: '/img/menu/fries.webp',
     name_ar: 'بطاطا كرنكل', name_en: 'Crinkle Fries',
     desc_ar: 'بطاطا متعرّجة مقرمشة ومتبّلة', desc_en: 'Crispy, seasoned crinkle-cut fries',
-    sizes: [{ id: 'm', ar: 'وسط', en: 'Medium', price: jd(1.3) }, { id: 'l', ar: 'كبير', en: 'Large', price: jd(1.85) }], tags: ['signature'],
+    sizes: [{ id: 'm', ar: 'وسط', en: 'Medium', price: jd(1.3) }, { id: 'l', ar: 'كبير', en: 'Large', price: jd(1.85) }], tags: ['veg', 'signature'],
   },
   {
     id: 'cheese-balls', category_id: 'sides', image: '/img/menu/cheese-balls.webp',
     name_ar: 'كرات الجبنة الحارة', name_en: 'Jalapeño Cheese Balls',
     desc_ar: 'كرات ذهبية محشية جبنة ذايبة وهالابينو', desc_en: 'Golden balls filled with melted cheese and jalapeño',
-    sizes: pcs([[3, 1.6], [6, 2.65]]), tags: ['spicy'],
+    sizes: pcs([[3, 1.6], [6, 2.65]]), tags: ['veg', 'spicy'],
   },
   {
     id: 'mozzarella', category_id: 'sides', image: '/img/menu/mozzarella.webp',
     name_ar: 'أصابع موزاريلا', name_en: 'Mozzarella Sticks',
     desc_ar: 'مقرمشة من برّا وجبنة بتمطّ من جوّا', desc_en: 'Crunchy outside, stretchy cheese inside',
-    sizes: pcs([[3, 2.15], [6, 3.7]]), tags: [],
+    sizes: pcs([[3, 2.15], [6, 3.7]]), tags: ['veg'],
   },
   {
     id: 'onion-rings', category_id: 'sides', image: '/img/menu/onion-rings.webp',
     name_ar: 'حلقات البصل', name_en: 'Onion Rings',
     desc_ar: 'حلقات بصل بعجينة مقرمشة', desc_en: 'Onion rings in a crispy batter',
-    sizes: pcs([[6, 1.6], [12, 2.65]]), tags: [],
+    sizes: pcs([[6, 1.6], [12, 2.65]]), tags: ['veg'],
   },
   {
     id: 'garlic-toast', category_id: 'sides', image: '/img/menu/garlic-toast.webp',
     name_ar: 'خبز بالثوم', name_en: 'Garlic Toast',
     desc_ar: 'خبز طري بزبدة الثوم، محمّص لحد ما يذهّب', desc_en: 'Soft bread brushed with garlic butter, toasted golden',
-    sizes: [{ id: '1pc', ar: 'قطعة', en: '1 pc', price: jd(0.35) }, { id: '3pc', ar: '٣ قطع', en: '3 pcs', price: jd(1.0) }], tags: [],
+    sizes: [{ id: '1pc', ar: 'قطعة', en: '1 pc', price: jd(0.35) }, { id: '3pc', ar: '٣ قطع', en: '3 pcs', price: jd(1.0) }], tags: ['veg'],
   },
   {
     id: 'coleslaw', category_id: 'sides', image: '/img/menu/coleslaw.webp',
     name_ar: 'كولسلو', name_en: 'Coleslaw',
     desc_ar: 'ملفوف وجزر طازة بصوص كريمي خفيف', desc_en: 'Fresh cabbage and carrot in a light creamy dressing',
-    sizes: [{ id: '1pc', ar: 'علبة', en: '1 cup', price: jd(0.6) }, { id: '2pc', ar: 'علبتين', en: '2 cups', price: jd(1.0) }], tags: [],
+    sizes: [{ id: '1pc', ar: 'علبة', en: '1 cup', price: jd(0.6) }, { id: '2pc', ar: 'علبتين', en: '2 cups', price: jd(1.0) }], tags: ['veg'],
   },
 
   // ─── Offers ───────────────────────────────────────────────────────
@@ -307,7 +307,7 @@ export const items = [
     id: 'snack-box', category_id: 'offers', image: '/img/menu/snack-box.webp',
     name_ar: 'سناك بوكس', name_en: 'Snack Box',
     desc_ar: '٣ أصابع موزاريلا، ٣ كرات جبنة حارة و٣ حلقات بصل', desc_en: '3 mozzarella sticks, 3 jalapeño cheese balls, 3 onion rings',
-    sizes: one(3.5, 'بوكس', 'Box'), tags: [],
+    sizes: one(3.5, 'بوكس', 'Box'), tags: ['veg'],
   },
 
   // ─── Dips (is_dip: can be picked as the dip that comes with a meal) ──
@@ -349,7 +349,7 @@ export const items = [
       { id: 'chunk', ar: '2 تشانك شوكولاتة', en: '2 chocolate chunk', price: jd(1.6) },
       { id: 'double', ar: '2 دبل شوكولاتة', en: '2 double chocolate', price: jd(1.6) },
     ],
-    tags: [],
+    tags: ['veg'],
   },
 
   // ─── Drinks ───────────────────────────────────────────────────────
@@ -374,7 +374,8 @@ export const items = [
 // One WhatsApp number takes orders for every branch; home delivery goes through Talabat.
 const WA = '962775866660';
 const PHONE = '+96265666660';
-const maps = (q) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
+// Google Maps place ids (from each branch's Maps listing): exact pin, directions, reviews
+const maps = (q, id) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}&query_place_id=${id}`;
 
 export const branches = [
   {
@@ -382,7 +383,7 @@ export const branches = [
     name_ar: 'مرج الحمام', name_en: 'Marj Al Hamam',
     address_ar: 'مرج الحمام — شارع سعيد العبادي', address_en: 'Marj Al Hamam — Saeed Al Abbadi St.',
     phone: PHONE, whatsapp: WA,
-    maps_url: maps("Mama's Tenders Marj Al Hamam"),
+    maps_url: maps("Mama's Tenders Marj Al Hamam", 'ChIJ5ZTUVQCnHBUR5QKHv6hJwmc'), place_id: 'ChIJ5ZTUVQCnHBUR5QKHv6hJwmc',
     rating: 4.9, reviews: 2859,
     open_time: '11:00', close_time: '02:00',
     delivery: 0, accepting: 1, sort: 1,
@@ -392,7 +393,7 @@ export const branches = [
     name_ar: 'الدوار السابع', name_en: '7th Circle',
     address_ar: 'عمّان — الدوار السابع', address_en: 'Amman — 7th Circle',
     phone: PHONE, whatsapp: WA,
-    maps_url: maps("MAMA'S TENDERS 7th Circle"),
+    maps_url: maps("MAMA'S TENDERS 7th Circle", 'ChIJ-0lGbKqhHBURS2Wwgl3bjyI'), place_id: 'ChIJ-0lGbKqhHBURS2Wwgl3bjyI',
     rating: 4.8, reviews: 4371,
     open_time: '11:00', close_time: '02:00',
     delivery: 0, accepting: 1, sort: 2,
@@ -402,7 +403,7 @@ export const branches = [
     name_ar: 'مكة مول', name_en: 'Mecca Mall',
     address_ar: 'شارع مكة — داخل مكة مول', address_en: 'Mecca St. — inside Mecca Mall',
     phone: PHONE, whatsapp: WA,
-    maps_url: maps("MAMA'S TENDERS Mecca Mall Amman"),
+    maps_url: maps("MAMA'S TENDERS Mecca Mall Amman", 'ChIJ83HABYuhHBUR3u7OBFXqKVE'), place_id: 'ChIJ83HABYuhHBUR3u7OBFXqKVE',
     rating: 4.9, reviews: 2719,
     open_time: '11:00', close_time: '00:00',
     delivery: 0, accepting: 1, sort: 3,
@@ -412,9 +413,10 @@ export const branches = [
     name_ar: 'خلدا', name_en: 'Khalda',
     address_ar: 'خلدا — شارع وصفي التل', address_en: 'Khalda — Wasfi Al Tal St.',
     phone: PHONE, whatsapp: WA,
-    maps_url: maps("MAMA'S TENDERS Wasfi Al Tal Khalda Amman"),
+    maps_url: maps("MAMA'S TENDERS Wasfi Al Tal Khalda Amman", 'ChIJNd_Qg4yhHBUR9VhXOZo4wWk'), place_id: 'ChIJNd_Qg4yhHBUR9VhXOZo4wWk',
     rating: 4.9, reviews: 3056,
     open_time: '11:00', close_time: '01:00',
+    hours_note_ar: 'الخميس والجمعة لـ ٢ بالليل', hours_note_en: 'Thu & Fri till 2 AM',
     delivery: 0, accepting: 1, sort: 4,
   },
 ];
@@ -427,6 +429,9 @@ export const settings = {
   delivery_note_en: 'Home delivery through Talabat or Careem, or call 06 566 6660',
   announcement_ar: '',
   announcement_en: '',
+  hours_note_ar: '',
+  hours_note_en: '',
+  halal: '1',
   instagram: 'https://www.instagram.com/mamastendersjo/',
   tiktok: '',
   facebook: '',

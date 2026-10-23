@@ -72,11 +72,25 @@ A fast, animated, Arabic-first ordering website for **Mama's Tenders** (Amman: M
 
 Every order is also logged (fire-and-forget) for the dashboard. The server **re-prices** each order from the database, and only accepts spicy/mild, flavour, dip and upsize on items that offer them.
 
-**Branches & reviews**
-- Four branch cards with real photos from each branch's Google Maps listing, live open/closed, rating, hours, Order here, Directions, WhatsApp and Call. Tapping a card moves the embedded Google map (no API key) to that branch.
-- Four real Google reviews, one from each branch.
+**Dietary labels & specials**
+- Tags on each card: spicy, vegetarian, contains nuts, grilled, fan favourite, new, and **today's special** (a red ribbon on the card; specials come first in Mama's picks).
+- A legend above the menu (spicy · vegetarian · nuts · **halal**, the halal badge is a dashboard switch) and an allergy note.
 
-**Other details**: sold-out tape (globally or per branch), View Transition language switch, cached menu with `/data/menu.json` fallback, installable (manifest + icons), Open Graph image, `Restaurant` JSON-LD with all four branches, custom 404, native `<dialog>`s, focus styles and reduced-motion support.
+**About & opening hours**
+- **About** section: the brand story, live stats (branches, Google rating, review count), Instagram/TikTok/Facebook links and a storefront photo.
+- **Opening hours** section: one card per branch with live open/closed, today's hours, the branch's own note (e.g. Khalda "Thu & Fri till 2 AM"), Directions and Call. A **special-hours banner** (Ramadan, Eid, holidays) appears when the owner fills it in under Settings.
+
+**Branches & reviews**
+- Four branch cards with real photos from each branch's Google Maps listing, live open/closed, rating (links to the branch's Google reviews), hours, Order here, **Get directions** (Google Maps directions to the exact place), WhatsApp and Call. Tapping a card moves the embedded Google map (no API key) to that branch.
+- Four real Google reviews, one from each branch, plus "Read all reviews on Google" and a "Rate us" button per branch (opens Google's write-a-review box).
+
+**Table QR codes**: `/?branch=khalda` (or any branch id) opens the site with that branch already chosen, so a QR on each table orders from the right branch.
+
+**Legal pages**: `/privacy` (what is collected, WhatsApp/Google/Talabat/Careem, no tracking cookies) and `/terms` (ordering, pickup, delivery partners, prices, payment at the branch, cancellations and refunds, allergies), in Arabic and English, linked from the footer. **No cookie banner is needed**: the site sets no cookies for visitors (only the owner's login cookie in `/admin`), and dish-view counts are anonymous and cookieless.
+
+**SEO**: title "Mama's Tenders – Amman", meta/OG tags, a full `Restaurant` JSON-LD built from the live data (menu with prices and vegetarian items, all four branches with address, opening hours, rating, map link), a Google Business Profile link in the footer, and a dynamic `/sitemap.xml` (with Arabic/English alternates) and `/robots.txt` that use whatever domain the site runs on.
+
+**Other details**: sold-out tape (globally or per branch), View Transition language switch, cached menu with `/data/menu.json` fallback, installable (manifest + icons), Open Graph image, HTTPS (Cloudflare), favicon, custom 404, native `<dialog>`s, focus styles and reduced-motion support.
 
 ### Lighthouse (mobile, local dev server, no compression)
 
@@ -91,11 +105,11 @@ LCP 2.5 s · TBT 10 ms · CLS 0 · Speed Index 1.5 s (simulated slow 4G). Produc
 ## 3. Dashboard (`/admin`)
 
 - **Login**: one password, stored as a Worker secret. HMAC-signed `HttpOnly; Secure; SameSite=Strict` cookie (7 days), 8 failed attempts per 15 minutes per IP.
-- **Overview**: orders and sales today, last 7 days, average order, a 14-day chart, split by branch, top items, recent orders (click for details, spicy/mild, flavour, dip, upsize, and a WhatsApp button to the customer).
-- **Menu**: search/filter; per item ⭐ featured (Mama's picks), **Available everywhere**, and a switch **per branch**. Item editor: photo upload (resized to WebP in the browser) or pick an existing one, Arabic/English names, ingredients and notes, sizes and prices with presets (3/4/5 pcs, Meal, Dip 1/3, single size), tags (spicy, grilled, fan favourite, new), **order options** (spicy or mild, flavour, dip with the meal, upsize), and "dip choice for meals".
+- **Overview**: orders and sales today, last 7 days, average order, a 14-day chart, split by branch, top items, **most-viewed dishes (7 days)**, recent orders (click for details, spicy/mild, flavour, dip, upsize, and a WhatsApp button to the customer).
+- **Menu**: search/filter; per item ⭐ featured (Mama's picks), **Available everywhere**, and a switch **per branch**. Item editor: photo upload (resized to WebP in the browser) or pick an existing one, Arabic/English names, ingredients and notes, sizes and prices with presets (3/4/5 pcs, Meal, Dip 1/3, single size), tags (today's special, spicy, vegetarian, contains nuts, grilled, fan favourite, new), **order options** (spicy or mild, flavour, dip with the meal, upsize), and "dip choice for meals".
 - **Categories**: rename, reorder, hide, add.
-- **Branches**: names, addresses, **WhatsApp number** (orders go here), phone, Google Maps link, opening hours, rating, delivery on/off, accepting online orders on/off.
-- **Settings**: upsize price, homepage rating, delivery note, announcement bar, Instagram/TikTok/Facebook/Talabat links, master online-ordering switch.
+- **Branches**: names, addresses, **WhatsApp number** (orders go here), phone, Google Maps link and Google place id (directions + reviews), opening hours and an hours note, rating, delivery on/off, accepting online orders on/off.
+- **Settings**: upsize price, homepage rating, halal badge, **special hours** (Ramadan/Eid/holiday banner, Arabic + English), delivery note, announcement bar, Instagram/TikTok/Facebook/Talabat links, master online-ordering switch.
 
 ---
 
@@ -147,4 +161,8 @@ npm run dev                           # http://localhost:8787  and  /admin
 - **Opening hours** (Google Maps, 22 Oct 2026): 7th Circle 11 AM–2 AM; Mecca Mall 11 AM–12 AM; Khalda 11 AM–1 AM (Thu–Fri until 2 AM — the site uses the 1 AM closing every day). Marj Al Hamam has no hours on Google, so it uses the QR menu's hours (11 AM–2 AM daily).
 - **Prices**: from the restaurant's own menu photos only, never from Talabat. Main source: the QR menu (menu.qrtoco.com screenshots, Oct 2026), the newest prices. Dips (0.35 / 3 for 1.00), water (0.45), juice (0.65), specialty sauces (1.00) and "Upsize your meal" (+1 JD) are not on those screenshots, so they come from the counter-menu photo. Sandwich prices are meals with fries & a drink. The Share Box asks for the 3 sandwiches in the item note.
 - **Photos**: product photos from the restaurant's Talabat listing with backgrounds removed; storefront photos from each branch's Google Maps gallery (7th Circle uses an interior shot). Upload originals per item from the dashboard for even sharper images.
+- **Halal badge**: shown in the menu legend; switch it off in Settings if the owner prefers not to state it.
+- **Legal pages**: `/privacy` and `/terms` are a sensible starting text; the owner should read them before launch.
+- **Ramadan / holidays**: fill in Settings → Special hours; leave it empty to hide the banner.
+- **TikTok / Facebook**: empty until added in Settings.
 - **Ratings**: Marj Al Hamam 4.9 (2,859), 7th Circle 4.8 (4,371), Mecca Mall 4.9 (2,719), Khalda 4.9 (3,056) — editable.
