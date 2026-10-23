@@ -143,11 +143,11 @@ The D1 database **`mamastenders`** (id `4b5a6ffa-…`) is created and bound in `
 | Worker | `mamastenders` | `meatandcheezz` |
 | D1 database | `mamastenders` · `4b5a6ffa-3b6c-461a-8c20-2bd7ef59032c` | `meatandcheezz` · `11d82cb9-…` |
 
-Before the first deploy, make sure the branch Cloudflare builds from has `"name": "mamastenders"` in `wrangler.jsonc`. The repository's very first commit was the Meat & Cheezz template (`"name": "meatandcheezz"`), and deploying that would replace the Meat & Cheezz site. Never press "Deploy" on the `meatandcheezz` Worker for this project, and never connect this repository to it.
+This repository holds **only** Mama's Tenders; Meat & Cheezz keeps deploying from its own repository. The one exception is the repository's very first commit (the Meat & Cheezz template, `"name": "meatandcheezz"`), so never roll back to it. Never connect this repository to the `meatandcheezz` Worker.
 
 **Steps (Cloudflare dashboard)**
 1. **Workers & Pages → Create → Workers → Import a repository** → GitHub → `MohSaleh6/Mama-s-Tenders`.
-2. Project name: **`mamastenders`** (it must match `name` in `wrangler.jsonc`). Production branch: the branch that holds this code (`main` once it's merged, otherwise `claude/mamas-tenders-website-qmrevk`).
+2. Project name: **`mamastenders`** (it must match `name` in `wrangler.jsonc`). Production branch: **`main`**.
 3. Build command: **empty**. Deploy command: **`npx wrangler deploy`**. Root directory: `/`. Then **Create and deploy**.
 4. **Set the dashboard password**: Worker `mamastenders` → Settings → Variables and Secrets → add `ADMIN_PASSWORD` (type *Secret*) and `SESSION_SECRET` (*Secret*, any long random string). Saving a secret deploys it straight away.
 5. Open `https://mamastenders.<your-subdomain>.workers.dev`. The first visit creates the tables and loads the menu by itself. Then open `/admin`, sign in and check branches, hours and WhatsApp.
