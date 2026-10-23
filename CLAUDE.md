@@ -97,7 +97,7 @@ Local dev: `npm install && npm run dev` serves on http://127.0.0.1:8787 with a l
 - Python deps: `pip install pillow numpy onnxruntime "rembg[cpu]" vtracer`.
 
 ## Deploy
-Workers Builds is connected to the GitHub branch. The deploy command is `npx wrangler deploy`, with no build command, because hashed URLs are committed via `npm run stamp`. Pushing to the branch redeploys. On a new account, create the D1 database first and put its id in `wrangler.jsonc`. The empty database seeds itself on the first request. Set the `ADMIN_PASSWORD` secret (and optionally `SESSION_SECRET`, any long random string) under Worker → Settings → Variables and Secrets.
+Workers Builds is connected to the GitHub branch (Worker project name `mamastenders`, matching `wrangler.jsonc`). The repo's first commit on `main` is the Meat & Cheezz template with `name: meatandcheezz`: never let Cloudflare build that commit, or it replaces the live Meat & Cheezz site. The deploy command is `npx wrangler deploy`, with no build command, because hashed URLs are committed via `npm run stamp`. Pushing to the branch redeploys. On a new account, create the D1 database first and put its id in `wrangler.jsonc`. The empty database seeds itself on the first request. Set the `ADMIN_PASSWORD` secret (and optionally `SESSION_SECRET`, any long random string) under Worker → Settings → Variables and Secrets.
 
 ## Ordering beyond WhatsApp (discussed, not built)
 Orders already pass through `POST /api/orders` (server re-pricing), so that's the hook for sending them to a POS API (e.g. Foodics), a connector service (Deliverect/Otter/UrbanPiper) or a live orders screen + cloud printer. Without a human reading WhatsApp, add phone verification (OTP), online payment or a staff "accept" step against prank orders.

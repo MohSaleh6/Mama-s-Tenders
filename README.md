@@ -136,11 +136,25 @@ The D1 database **`mamastenders`** (id `4b5a6ffa-…`) is created and bound in `
 
 **The database sets itself up.** On the first API request, `src/seed.js` creates the tables and loads the starter menu, branches and settings from `public/data/menu.json`. It only inserts what is missing, so dashboard edits are never overwritten.
 
-**Steps**
-1. In Cloudflare, **Workers & Pages → Create → Import a repository**, pick this repo/branch, deploy command `npx wrangler deploy`, no build command (or run `npm run deploy` locally after `npx wrangler login`).
-2. **Set the dashboard password**: Worker `mamastenders` → Settings → Variables and Secrets → add `ADMIN_PASSWORD` (Secret) and optionally `SESSION_SECRET` (any long random string).
-3. Open `https://mamastenders.<your-subdomain>.workers.dev/admin`, sign in and check branches, hours and WhatsApp.
-4. Optional custom domain: Worker → Settings → Domains & Routes.
+**Keeping Meat & Cheezz safe.** Both sites live in the same Cloudflare account. They never touch each other as long as Mama's Tenders deploys **from this repository** (`MohSaleh6/Mama-s-Tenders`) with this `wrangler.jsonc`:
+
+| | Mama's Tenders | Meat & Cheezz (don't touch) |
+|---|---|---|
+| Worker | `mamastenders` | `meatandcheezz` |
+| D1 database | `mamastenders` · `4b5a6ffa-3b6c-461a-8c20-2bd7ef59032c` | `meatandcheezz` · `11d82cb9-…` |
+
+Before the first deploy, make sure the branch Cloudflare builds from has `"name": "mamastenders"` in `wrangler.jsonc`. The repository's very first commit was the Meat & Cheezz template (`"name": "meatandcheezz"`), and deploying that would replace the Meat & Cheezz site. Never press "Deploy" on the `meatandcheezz` Worker for this project, and never connect this repository to it.
+
+**Steps (Cloudflare dashboard)**
+1. **Workers & Pages → Create → Workers → Import a repository** → GitHub → `MohSaleh6/Mama-s-Tenders`.
+2. Project name: **`mamastenders`** (it must match `name` in `wrangler.jsonc`). Production branch: the branch that holds this code (`main` once it's merged, otherwise `claude/mamas-tenders-website-qmrevk`).
+3. Build command: **empty**. Deploy command: **`npx wrangler deploy`**. Root directory: `/`. Then **Create and deploy**.
+4. **Set the dashboard password**: Worker `mamastenders` → Settings → Variables and Secrets → add `ADMIN_PASSWORD` (type *Secret*) and `SESSION_SECRET` (*Secret*, any long random string). Saving a secret deploys it straight away.
+5. Open `https://mamastenders.<your-subdomain>.workers.dev`. The first visit creates the tables and loads the menu by itself. Then open `/admin`, sign in and check branches, hours and WhatsApp.
+6. Optional custom domain (e.g. `mamastenders.jo`): Worker → Settings → Domains & Routes → Add → Custom domain. The sitemap, robots.txt and Google data follow the domain automatically.
+7. After that, every push to the production branch redeploys. Menu, prices and sold-out changes are made in `/admin` and need no deploy.
+
+**Or from a computer**: `npm install`, `npx wrangler login`, `npm run deploy`, then `npx wrangler secret put ADMIN_PASSWORD` and `npx wrangler secret put SESSION_SECRET`.
 
 **Run locally**
 
