@@ -1,6 +1,6 @@
 // Single source of truth for the seed menu.
 // Prices: the in-store counter menu (Marj Al Hamam, 2026), all prices include sales tax.
-// Descriptions: the restaurant's own Talabat listing.
+// Descriptions: the restaurant's own Talabat listing (descriptions only — no Talabat prices).
 // Prices are stored in fils (1 JD = 1000 fils) to avoid floating point errors.
 //
 // Item `options` (any of):
@@ -212,11 +212,8 @@ export const items = [
   {
     id: 'almond-bites', category_id: 'bites', image: '/img/menu/almond-bites.webp',
     name_ar: 'بايتس سويت هيت باللوز', name_en: 'Sweet Heat Almond Bites',
-    desc_ar: 'بايتس مقرمشة بصوص حلو وحار ولوز', desc_en: 'Crispy bites glazed sweet & hot, with almonds',
-    sizes: [
-      { id: 'solo-6', ar: '٦ قطع سولو', en: '6 pcs solo', price: jd(3.0) },
-      { id: 'meal-12', ar: 'وجبة ١٢ قطعة', en: '12 pcs meal', price: jd(5.5) },
-    ],
+    desc_ar: 'بايتس مقرمشة بصوص حلو وحار ولوز، مع بطاطا ومشروب', desc_en: 'Crispy bites glazed sweet & hot, with almonds, served with fries and a drink',
+    sizes: one(5.5, 'وجبة', 'Meal'),
     tags: ['new', 'spicy'],
   },
 
